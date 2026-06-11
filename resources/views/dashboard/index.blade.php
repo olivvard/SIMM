@@ -100,10 +100,21 @@
                                 @endphp
                                 <tr>
                                     <td>
-                                        <div class="fw-semibold">{{ $schedule->motor->motor_code }}</div>
-                                        <small class="text-muted">{{ $schedule->motor->location }}</small>
+                                        <div class="fw-semibold">
+                                            {{ $schedule->motor?->motor_code ?? 'Deleted Motor' }}
+                                            @if($schedule->motor?->trashed())
+                                                <span class="badge bg-secondary ms-1">Deleted</span>
+                                            @endif
+                                        </div>
+                                        <small class="text-muted">{{ $schedule->motor?->location ?? 'N/A' }}</small>
                                     </td>
-                                    <td><span class="badge badge-location">{{ $schedule->motor->location }} ({{ $schedule->motor->area }})</span></td>
+                                    <td>
+                                        @if($schedule->motor)
+                                            <span class="badge badge-location">{{ $schedule->motor->location }} ({{ $schedule->motor->area }})</span>
+                                        @else
+                                            <span class="badge badge-location bg-secondary">N/A</span>
+                                        @endif
+                                    </td>
                                     <td>{{ $schedule->period }}</td>
                                     <td>{{ $schedule->schedule_date->format('d M Y') }}</td>
                                     <td>

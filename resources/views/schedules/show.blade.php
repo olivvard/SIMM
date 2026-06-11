@@ -23,12 +23,21 @@
                 <dl class="row">
                     <dt class="col-sm-4 text-muted">Motor</dt>
                     <dd class="col-sm-8">
-                        <span class="fw-semibold text-primary">{{ $schedule->motor->motor_code }}</span>
+                        <span class="fw-semibold text-primary">
+                            {{ $schedule->motor?->motor_code ?? 'Deleted Motor' }}
+                            @if($schedule->motor?->trashed())
+                                <span class="badge bg-secondary ms-1">Deleted</span>
+                            @endif
+                        </span>
                     </dd>
 
                     <dt class="col-sm-4 text-muted">Location</dt>
                     <dd class="col-sm-8">
-                        <span class="badge badge-location">{{ $schedule->motor->location }} ({{ $schedule->motor->area }})</span>
+                        @if($schedule->motor)
+                            <span class="badge badge-location">{{ $schedule->motor->location }} ({{ $schedule->motor->area }})</span>
+                        @else
+                            <span class="badge badge-location bg-secondary">N/A</span>
+                        @endif
                     </dd>
 
                     <dt class="col-sm-4 text-muted">Period</dt>

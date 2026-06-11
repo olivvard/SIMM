@@ -15,24 +15,21 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         $motors = Motor::orderBy('motor_code')->get();
-        $logs   = collect();
 
-        if ($request->filled('month') || $request->filled('motor_id')) {
-            $query = MaintenanceLog::with(['motor', 'schedule', 'admin', 'activityDetails.activity'])
-                ->orderByDesc('inspection_date');
+        $query = MaintenanceLog::with(['motor', 'schedule', 'admin', 'activityDetails.activity'])
+            ->orderByDesc('inspection_date');
 
-            if ($request->filled('month')) {
-                [$year, $month] = explode('-', $request->month);
-                $query->whereYear('inspection_date', $year)
-                      ->whereMonth('inspection_date', $month);
-            }
-
-            if ($request->filled('motor_id')) {
-                $query->where('motor_id', $request->motor_id);
-            }
-
-            $logs = $query->get();
+        if ($request->filled('month')) {
+            [$year, $month] = explode('-', $request->month);
+            $query->whereYear('inspection_date', $year)
+                  ->whereMonth('inspection_date', $month);
         }
+
+        if ($request->filled('motor_id')) {
+            $query->where('motor_id', $request->motor_id);
+        }
+
+        $logs = $query->get();
 
         return view('reports.index', compact('motors', 'logs'));
     }
@@ -66,7 +63,7 @@ class ReportController extends Controller
             $logs       = $query->get();
             $month      = $request->month ?? now()->format('Y-m');
             $motorLabel = $request->filled('motor_id')
-                ? Motor::find($request->motor_id)?->motor_code
+                ? Motor::withTrashed()->find($request->motor_id)?->motor_code
                 : 'All Motors';
         }
 

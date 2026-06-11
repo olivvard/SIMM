@@ -64,7 +64,12 @@
                     <tr>
                         <td>{{ $schedules->firstItem() + $i }}</td>
                         <td>
-                            <div class="fw-semibold">{{ $schedule->motor->motor_code }}</div>
+                            <div class="fw-semibold">
+                                {{ $schedule->motor?->motor_code ?? 'Deleted Motor' }}
+                                @if($schedule->motor?->trashed())
+                                    <span class="badge bg-secondary ms-1">Deleted</span>
+                                @endif
+                            </div>
                         </td>
                         <td>{{ $schedule->period }}</td>
                         <td>{{ $schedule->schedule_date->format('d M Y') }}</td>

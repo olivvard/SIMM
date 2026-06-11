@@ -25,10 +25,10 @@
                             <option value="">— Select Schedule —</option>
                             @foreach($schedules as $schedule)
                                 <option value="{{ $schedule->id }}"
-                                    data-motor-code="{{ $schedule->motor->motor_code }}"
+                                    data-motor-code="{{ $schedule->motor?->motor_code ?? '' }}"
                                     data-period="{{ $schedule->period }}"
                                     {{ (old('schedule_id', optional($selectedSchedule)->id) == $schedule->id) ? 'selected' : '' }}>
-                                    [{{ ucfirst($schedule->status) }}] {{ $schedule->motor->motor_code }} —
+                                    [{{ ucfirst($schedule->status) }}] {{ $schedule->motor?->motor_code ?? 'Deleted Motor' }} —
                                     {{ $schedule->period }} — {{ $schedule->schedule_date->format('d M Y') }}
                                 </option>
                             @endforeach
@@ -39,7 +39,7 @@
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Motor Code</label>
                         <input type="text" id="auto-motor-code" class="form-control bg-light" readonly
-                               value="{{ optional($selectedSchedule)->motor->motor_code ?? '' }}">
+                               value="{{ optional($selectedSchedule)->motor?->motor_code ?? '' }}">
                     </div>
 
                     <div class="col-md-4">

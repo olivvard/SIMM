@@ -84,103 +84,93 @@
     </div>
     @endif
 
-    {{-- Results Table --}}
-    @if(request()->filled('month') || request()->filled('motor_id'))
-        @if($logs->isEmpty())
-            <div class="card card-panel">
-                <div class="card-body text-center py-5 text-muted">
-                    <i class="bi bi-inbox fs-1 d-block opacity-25 mb-2"></i>
-                    No maintenance records found for the selected filters.
-                </div>
-            </div>
-        @else
-            <div class="card card-panel">
-                <div class="card-header d-flex align-items-center justify-content-between">
-                    <h6 class="card-panel__title mb-0">
-                        <i class="bi bi-table me-2 text-info"></i>
-                        Results — {{ $logs->count() }} record(s)
-                    </h6>
-                    {{-- Select All (only visible in selection mode) --}}
-                    <div id="selectAllWrapper" class="d-none">
-                        <div class="form-check mb-0 d-flex align-items-center gap-2">
-                            <input class="form-check-input" type="checkbox" id="checkAll"
-                                   style="width:1.1rem;height:1.1rem;cursor:pointer;"
-                                   onchange="toggleAll(this)">
-                            <label class="form-check-label small fw-semibold" for="checkAll">
-                                Select All
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    {{-- Checkbox column — hidden until selection mode --}}
-                                    <th id="thCheck" class="d-none" style="width:40px;"></th>
-                                    <th>#</th>
-                                    <th>Inspection Date</th>
-                                    <th>Motor</th>
-                                    <th>Location</th>
-                                    <th>Period</th>
-                                    <th>Admin</th>
-                                    <th>Activities</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($logs as $i => $log)
-                                @php
-                                    $done  = $log->activityDetails->where('is_done', true)->count();
-                                    $total = $log->activityDetails->count();
-                                    $pct   = $total > 0 ? round($done / $total * 100) : 0;
-                                @endphp
-                                <tr class="log-row" data-id="{{ $log->id }}" onclick="handleRowClick(this)" style="cursor:default;">
-                                    {{-- Checkbox cell (hidden until selection mode) --}}
-                                    <td class="td-check d-none" style="width:40px;">
-                                        <input type="checkbox"
-                                               class="form-check-input log-checkbox"
-                                               value="{{ $log->id }}"
-                                               style="width:1.1rem;height:1.1rem;cursor:pointer;"
-                                               onchange="updateCount()">
-                                    </td>
-                                    <td>{{ $i + 1 }}</td>
-                                    <td class="fw-semibold">{{ $log->inspection_date?->format('d M Y') ?? '—' }}</td>
-                                    <td>
-                                        <div class="fw-semibold text-primary">{{ $log->motor?->motor_code ?? '—' }}</div>
-                                        <small class="text-muted">{{ $log->motor?->location ?? '—' }}</small>
-                                    </td>
-                                    <td><span class="badge badge-location">{{ $log->motor?->location ?? '—' }} ({{ $log->motor?->area ?? '—' }})</span></td>
-                                    <td>{{ $log->schedule?->period ?? '—' }}</td>
-                                    <td>{{ $log->admin?->full_name ?? '—' }}</td>
-                                    <td>
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div class="progress flex-fill" style="height:6px; min-width:60px;">
-                                                <div class="progress-bar bg-success" style="width:{{ $pct }}%"></div>
-                                            </div>
-                                            <small class="text-muted">{{ $done }}/{{ $total }}</small>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <a href="{{ route('maintenance.show', $log) }}"
-                                           class="btn btn-sm btn-outline-info view-btn">
-                                            <i class="bi bi-eye-fill"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        @endif
-    @else
+    @if($logs->isEmpty())
         <div class="card card-panel">
             <div class="card-body text-center py-5 text-muted">
-                <i class="bi bi-bar-chart fs-1 d-block opacity-25 mb-2"></i>
-                <p class="mb-0">Select a month and/or motor above to generate a report.</p>
+                <i class="bi bi-inbox fs-1 d-block opacity-25 mb-2"></i>
+                No maintenance records found.
+            </div>
+        </div>
+    @else
+        <div class="card card-panel">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h6 class="card-panel__title mb-0">
+                    <i class="bi bi-table me-2 text-info"></i>
+                    Results — {{ $logs->count() }} record(s)
+                </h6>
+                {{-- Select All (only visible in selection mode) --}}
+                <div id="selectAllWrapper" class="d-none">
+                    <div class="form-check mb-0 d-flex align-items-center gap-2">
+                        <input class="form-check-input" type="checkbox" id="checkAll"
+                               style="width:1.1rem;height:1.1rem;cursor:pointer;"
+                               onchange="toggleAll(this)">
+                        <label class="form-check-label small fw-semibold" for="checkAll">
+                            Select All
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                {{-- Checkbox column — hidden until selection mode --}}
+                                <th id="thCheck" class="d-none" style="width:40px;"></th>
+                                <th>#</th>
+                                <th>Inspection Date</th>
+                                <th>Motor</th>
+                                <th>Location</th>
+                                <th>Period</th>
+                                <th>Admin</th>
+                                <th>Activities</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($logs as $i => $log)
+                            @php
+                                $done  = $log->activityDetails->where('is_done', true)->count();
+                                $total = $log->activityDetails->count();
+                                $pct   = $total > 0 ? round($done / $total * 100) : 0;
+                            @endphp
+                            <tr class="log-row" data-id="{{ $log->id }}" onclick="handleRowClick(this)" style="cursor:default;">
+                                {{-- Checkbox cell (hidden until selection mode) --}}
+                                <td class="td-check d-none" style="width:40px;">
+                                    <input type="checkbox"
+                                           class="form-check-input log-checkbox"
+                                           value="{{ $log->id }}"
+                                           style="width:1.1rem;height:1.1rem;cursor:pointer;"
+                                           onchange="updateCount()">
+                                </td>
+                                <td>{{ $i + 1 }}</td>
+                                <td class="fw-semibold">{{ $log->inspection_date?->format('d M Y') ?? '—' }}</td>
+                                <td>
+                                    <div class="fw-semibold text-primary">{{ $log->motor?->motor_code ?? '—' }}</div>
+                                    <small class="text-muted">{{ $log->motor?->location ?? '—' }}</small>
+                                </td>
+                                <td><span class="badge badge-location">{{ $log->motor?->location ?? '—' }} ({{ $log->motor?->area ?? '—' }})</span></td>
+                                <td>{{ $log->schedule?->period ?? '—' }}</td>
+                                <td>{{ $log->admin?->full_name ?? '—' }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-fill" style="height:6px; min-width:60px;">
+                                            <div class="progress-bar bg-success" style="width:{{ $pct }}%"></div>
+                                        </div>
+                                        <small class="text-muted">{{ $done }}/{{ $total }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <a href="{{ route('maintenance.show', $log) }}"
+                                       class="btn btn-sm btn-outline-info view-btn">
+                                        <i class="bi bi-eye-fill"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     @endif

@@ -42,9 +42,9 @@ class MaintenanceExport implements FromCollection, WithHeadings, WithStyles, Sho
             return [
                 'No'               => $index + 1,
                 'Inspection Date'  => $log->inspection_date->format('d/m/Y'),
-                'Motor Code'       => $log->motor->motor_code,
-                'Location'         => $log->motor->location,
-                'Period'           => $log->schedule->period ?? '-',
+                'Motor Code'       => $log->motor?->motor_code ?? '-',
+                'Location'         => $log->motor?->location ?? '-',
+                'Period'           => $log->schedule?->period ?? '-',
                 'Admin'            => $log->admin->full_name,
                 'Activities Done'  => "{$doneCnt}/{$totalCnt}",
                 'General Notes'    => $log->general_notes ?? '-',

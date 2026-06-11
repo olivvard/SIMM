@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Maintenance Report — {{ $month }}</title>
     <style>
+        @page { margin: 3cm 2cm 2cm 2cm; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 8pt; color: #1e293b; background: #fff; }
         .report-header { border-bottom: 3px solid #1d4ed8; padding-bottom: 8px; margin-bottom: 12px; }
@@ -128,68 +129,153 @@
     }
 @endphp
 
-<table class="pivot">
-    <thead>
-        <tr class="h-motor">
-            <th class="th-act" style="width:38px;">Code</th>
-            <th class="th-act">Activity Name</th>
-            <th class="th-act" style="width:58px;">Category</th>
-            @foreach($logs as $log)
-                <th>{{ $log->motor?->motor_code ?? '—' }}</th>
-            @endforeach
-        </tr>
-        <tr class="h-date">
-            <th class="th-act">—</th>
-            <th class="th-act">Inspection Date</th>
-            <th class="th-act">Period</th>
-            @foreach($logs as $log)
-                <th>
-                    {{ $log->inspection_date?->format('d/m/y') ?? '—' }}<br>
-                    <span style="color:#1e40af;">{{ $log->schedule?->period ?? '—' }}</span>
-                </th>
-            @endforeach
-        </tr>
-    </thead>
-    <tbody>
-        @forelse($activities as $activity)
-        <tr>
-            <td class="td-code">{{ $activity->activity_code }}</td>
-            <td class="td-name">{{ $activity->activity_name }}</td>
-            <td class="td-cat">
-                <span class="cat cat-{{ strtolower($activity->category) }}">{{ $activity->category }}</span>
-            </td>
-            @foreach($logs as $log)
-                @php $detail = $lookup[$log->id][$activity->id] ?? null; @endphp
-                <td class="td-chk {{ $detail?->is_done ? 'done-yes' : ($detail ? 'done-no' : 'done-na') }}">
-                    {{ $detail?->is_done ? '✓' : ($detail ? '✗' : '—') }}
-                </td>
-            @endforeach
-        </tr>
-        @empty
-        <tr>
-            <td colspan="{{ 3 + $logs->count() }}" style="text-align:center; padding:20px; color:#94a3b8;">No activity data found.</td>
-        </tr>
-        @endforelse
+{{-- 2-column layout: left = activity pivot, right = general notes --}}
+<table style="width:100%; border-collapse:collapse; margin-bottom:10px;">
+    <tr>
+        {{-- LEFT: activity pivot table (50% width) --}}
+        <td style="width:50%; vertical-align:top; padding-right:8px;">
+            <table class="pivot" style="width:100%;">
+                <thead>
+                    <tr class="h-motor">
+                        <th class="th-act" style="width:36px;">Code</th>
+                        <th class="th-act">Activity Name</th>
+                        <th class="th-act" style="width:52px;">Category</th>
+                        @foreach($logs as $log)
+                            <th>{{ $log->motor?->motor_code ?? '—' }}</th>
+                        @endforeach
+                    </tr>
+                    <tr class="h-date">
+                        <th class="th-act">—</th>
+                        <th class="th-act">Inspection Date</th>
+                        <th class="th-act">Period</th>
+                        @foreach($logs as $log)
+                            <th>
+                                {{ $log->inspection_date?->format('d/m/y') ?? '—' }}<br>
+                                <span style="color:#1e40af;">{{ $log->schedule?->period ?? '—' }}</span>
+                            </th>
+                        @endforeach
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($activities as $activity)
+                    <tr>
+                        <td class="td-code">{{ $activity->activity_code }}</td>
+                        <td class="td-name">{{ $activity->activity_name }}</td>
+                        <td class="td-cat">
+                            <span class="cat cat-{{ strtolower($activity->category) }}">{{ $activity->category }}</span>
+                        </td>
+                        @foreach($logs as $log)
+                            @php $detail = $lookup[$log->id][$activity->id] ?? null; @endphp
+                            <td class="td-chk {{ $detail?->is_done ? 'done-yes' : ($detail ? 'done-no' : 'done-na') }}">
+                                {{ $detail?->is_done ? '✓' : ($detail ? '✗' : '—') }}
+                            </td>
+                        @endforeach
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="{{ 3 + $logs->count() }}" style="text-align:center; padding:20px; color:#94a3b8;">No activity data found.</td>
+                    </tr>
+                    @endforelse
 
-        <tr style="background:#f1f5f9; font-weight:700;">
-            <td colspan="2" style="text-align:right; padding-right:8px; font-size:7.5pt;">Done / Total</td>
-            <td></td>
-            @foreach($logs as $log)
-                @php
-                    $dn  = $log->activityDetails->where('is_done', true)->count();
-                    $tot = $log->activityDetails->count();
-                    $pct = $tot > 0 ? round($dn / $tot * 100) : 0;
-                @endphp
-                <td class="td-chk {{ $pct >= 80 ? 'done-yes' : ($pct >= 50 ? '' : 'done-no') }}" style="font-size:7pt;">
-                    {{ $dn }}/{{ $tot }}<br><span style="font-size:6pt;">{{ $pct }}%</span>
-                </td>
-            @endforeach
-        </tr>
-    </tbody>
+                    <tr style="background:#f1f5f9; font-weight:700;">
+                        <td colspan="2" style="text-align:right; padding-right:8px; font-size:7.5pt;">Done / Total</td>
+                        <td></td>
+                        @foreach($logs as $log)
+                            @php
+                                $dn  = $log->activityDetails->where('is_done', true)->count();
+                                $tot = $log->activityDetails->count();
+                                $pct = $tot > 0 ? round($dn / $tot * 100) : 0;
+                            @endphp
+                            <td class="td-chk {{ $pct >= 80 ? 'done-yes' : ($pct >= 50 ? '' : 'done-no') }}" style="font-size:7pt;">
+                                {{ $dn }}/{{ $tot }}<br><span style="font-size:6pt;">{{ $pct }}%</span>
+                            </td>
+                        @endforeach
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+
+        {{-- RIGHT: general notes per log (50% width) --}}
+        <td style="width:50%; vertical-align:top; padding-left:8px;">
+            <table style="width:100%; border-collapse:collapse; font-size:7.5pt;">
+                <thead>
+                    <tr>
+                        <th style="background:#1d4ed8; color:#fff; padding:5px 4px; border:1px solid #1e40af; font-size:7pt; text-align:left;">#</th>
+                        <th style="background:#1d4ed8; color:#fff; padding:5px 4px; border:1px solid #1e40af; font-size:7pt; text-align:left;">Motor</th>
+                        <th style="background:#1d4ed8; color:#fff; padding:5px 4px; border:1px solid #1e40af; font-size:7pt; text-align:left;">General Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($logs as $i => $log)
+                    <tr style="{{ $i % 2 === 0 ? '' : 'background:#f8fafc;' }}">
+                        <td style="padding:4px 3px; border:1px solid #e2e8f0; vertical-align:top; width:18px; text-align:center;">{{ $i + 1 }}</td>
+                        <td style="padding:4px 3px; border:1px solid #e2e8f0; vertical-align:top; width:65px; font-weight:700; color:#1d4ed8; white-space:nowrap;">{{ $log->motor?->motor_code ?? '—' }}</td>
+                        <td style="padding:4px 3px; border:1px solid #e2e8f0; vertical-align:top; color:#334155;">{{ $log->general_notes ?: '—' }}</td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="3" style="text-align:center; padding:16px; color:#94a3b8;">No notes.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </td>
+    </tr>
 </table>
 
-<div class="report-footer">
-    Motor Preventive Maintenance System &copy; {{ date('Y') }} &nbsp;|&nbsp; Generated: {{ now()->format('d M Y H:i') }}
-</div>
+<table style="width: 100%; border-collapse: collapse; margin-top: 35px; page-break-inside: avoid; font-size: 7.5pt;">
+    <tr>
+        <td style="width: 25%; text-align: center; vertical-align: bottom; height: 35px; padding-bottom: 5px; font-weight: bold;">
+            Report By:<br>
+            PT. Wholesale Electric Asia Indonesia
+        </td>
+        <td style="width: 25%; text-align: center; vertical-align: bottom; height: 35px; padding-bottom: 5px; font-weight: bold;">
+            Acknowledge By:<br>
+            PT. Pertamina RU II Dumai
+        </td>
+        <td style="width: 25%; text-align: center; vertical-align: bottom; height: 35px; padding-bottom: 5px; font-weight: bold;">
+            Acknowledge By:<br>
+            PT. Pertamina RU II Dumai
+        </td>
+        <td style="width: 25%; text-align: center; vertical-align: bottom; height: 35px; padding-bottom: 5px; font-weight: bold;">
+            Acknowledge By:<br>
+            &nbsp;
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: center; padding-top: 40px; vertical-align: top;">
+            _______________________<br>
+            <span style="font-weight: bold;">Electrical</span>
+            <div style="text-align: left; width: 110px; margin: 4px auto 0 auto; line-height: 1.3;">
+                Name:<br>
+                Date:
+            </div>
+        </td>
+        <td style="text-align: center; padding-top: 40px; vertical-align: top;">
+            _______________________<br>
+            <span style="font-weight: bold;">Operation</span>
+            <div style="text-align: left; width: 110px; margin: 4px auto 0 auto; line-height: 1.3;">
+                Name:<br>
+                Date:
+            </div>
+        </td>
+        <td style="text-align: center; padding-top: 40px; vertical-align: top;">
+            _______________________<br>
+            <span style="font-weight: bold;">Electrical MA I/II/III/IV</span>
+            <div style="text-align: left; width: 110px; margin: 4px auto 0 auto; line-height: 1.3;">
+                Name:<br>
+                Date:
+            </div>
+        </td>
+        <td style="text-align: center; padding-top: 40px; vertical-align: top;">
+            _______________________<br>
+            <span style="font-weight: bold;">EIIE</span>
+            <div style="text-align: left; width: 110px; margin: 4px auto 0 auto; line-height: 1.3;">
+                Name:<br>
+                Date:
+            </div>
+        </td>
+    </tr>
+</table>
 </body>
 </html>

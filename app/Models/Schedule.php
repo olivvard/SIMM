@@ -23,7 +23,7 @@ class Schedule extends Model
     // Relations
     public function motor()
     {
-        return $this->belongsTo(Motor::class);
+        return $this->belongsTo(Motor::class)->withTrashed();
     }
 
     public function maintenanceLogs()
