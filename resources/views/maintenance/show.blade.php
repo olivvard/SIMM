@@ -79,12 +79,12 @@
                 $done  = $maintenanceLog->activityDetails->where('is_done', true)->count();
                 $total = $maintenanceLog->activityDetails->count();
             @endphp
-            <span class="badge bg-primary">{{ $done }}/{{ $total }} completed</span>
+            <span class="badge bg-primary text-white">{{ $done }}/{{ $total }} completed</span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-bordered align-middle mb-0">
-                    <thead class="table-dark">
+                    <thead class="table-primary">
                         <tr>
                             <th width="70">Code</th>
                             <th>Activity Name</th>

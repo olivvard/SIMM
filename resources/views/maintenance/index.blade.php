@@ -19,14 +19,14 @@
         <button type="button" id="btnEnableSelect"
                 class="btn btn-danger"
                 onclick="enableSelectionMode()">
-            <i class="bi bi-file-earmark-pdf-fill me-1"></i>Export PDF
+            <i class="fa fa-download"></i> Export PDF
         </button>
 
         {{-- Selection mode: Download + Cancel --}}
         <button type="button" id="btnDownloadSelected"
                 class="btn btn-danger d-none"
                 onclick="submitSelection()" disabled>
-            <i class="bi bi-download me-1"></i>Download Selected
+            <i class="fa fa-download"></i>  Download Selected
             <span id="selectedCount" class="badge bg-white text-danger ms-1">0</span>
         </button>
         <button type="button" id="btnCancelSelect"
@@ -42,7 +42,7 @@
         </span>
 
         <a href="{{ route('maintenance.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle-fill me-1"></i>New Maintenance Input
+            <i class="fa fa-plus-square"></i> New Maintenance Input
         </a>
     </div>
 </div>
@@ -119,13 +119,13 @@
                             <div class="btn-group btn-group-sm">
                                 <a href="{{ route('maintenance.show', $log) }}"
                                    class="btn btn-outline-info view-btn" title="View">
-                                    <i class="bi bi-eye-fill"></i>
+                                    <i class="fa fa-eye"></i>
                                 </a>
                                 <form method="POST" action="{{ route('maintenance.destroy', $log) }}"
                                       onsubmit="return confirm('Delete this maintenance log?')">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="btn btn-outline-danger" title="Delete">
-                                        <i class="bi bi-trash-fill"></i>
+                                        <i class="fa fa-trash"></i>
                                     </button>
                                 </form>
                             </div>

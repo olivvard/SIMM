@@ -239,6 +239,7 @@
         </td>
         <td style="width: 25%; text-align: center; vertical-align: bottom; height: 35px; padding-bottom: 5px; font-weight: bold;">
             Acknowledge By:<br>
+            PT. Pertamina RU II Dumai
             &nbsp;
         </td>
     </tr>

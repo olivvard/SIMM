@@ -56,20 +56,20 @@
                     <div class="row text-center g-3">
                         <div class="col-4">
                             <div class="p-3 rounded-3 bg-primary bg-opacity-10">
-                                <div class="fs-2 fw-bold text-primary">{{ $logs->count() }}</div>
-                                <div class="small text-muted">Total Logs</div>
+                                <div class="fs-2 fw-bold text-white">{{ $logs->count() }}</div>
+                                <div class="small text-white">Total Logs</div>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="p-3 rounded-3 bg-success bg-opacity-10">
-                                <div class="fs-2 fw-bold text-success">{{ $motor->schedules->where('status','done')->count() }}</div>
-                                <div class="small text-muted">Done</div>
+                                <div class="fs-2 fw-bold text-white">{{ $motor->schedules->where('status','done')->count() }}</div>
+                                <div class="small text-white">Done</div>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="p-3 rounded-3 bg-danger bg-opacity-10">
-                                <div class="fs-2 fw-bold text-danger">{{ $motor->schedules->where('status','overdue')->count() }}</div>
-                                <div class="small text-muted">Overdue</div>
+                                <div class="fs-2 fw-bold text-white">{{ $motor->schedules->where('status','overdue')->count() }}</div>
+                                <div class="small text-white">Overdue</div>
                             </div>
                         </div>
                     </div>
@@ -108,7 +108,7 @@
                                 data-bs-target="#log-{{ $log->id }}"
                                 aria-expanded="{{ $i === 0 ? 'true' : 'false' }}">
                                 <div class="d-flex align-items-center gap-3 w-100 me-3">
-                                    <span class="badge bg-primary">{{ $log->inspection_date->format('d M Y') }}</span>
+                                    <span class="badge bg-primary">{{ $log->inspection_date?->format('d M Y') ?? '—' }}</span>
                                     <span class="fw-semibold">{{ $log->schedule->period ?? 'N/A' }}</span>
                                     <span class="text-muted small ms-auto">By: {{ $log->admin->full_name }}</span>
                                 </div>

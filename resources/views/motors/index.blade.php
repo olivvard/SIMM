@@ -19,7 +19,7 @@
             <div class="col-md-6">
                 <label class="form-label fw-semibold small">Search</label>
                 <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <span class="input-group-text"><i class="fa fa-search"></i></span>
                     <input type="text" name="search" class="form-control" placeholder="Code, name, or location…" value="{{ request('search') }}">
                 </div>
             </div>
@@ -74,15 +74,15 @@
                             <div class="d-flex justify-content-center align-items-center">
                                 @if(!$motor->trashed())
                                     <a href="{{ route('motors.show', $motor) }}" class="btn btn-outline-info mx-1" title="View">
-                                        <i class="bi bi-eye-fill"></i>
+                                        <i class="fa fa-eye"></i>
                                     </a>
                                     <a href="{{ route('motors.edit', $motor) }}" class="btn btn-outline-warning mx-1" title="Edit">
-                                        <i class="bi bi-pencil-fill"></i>
+                                        <i class="fa fa-edit"></i>
                                     </a>
                                     <form method="POST" action="{{ route('motors.destroy', $motor) }}" onsubmit="return confirm('Soft-delete this motor?')">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="btn btn-outline-danger mx-1" title="Soft Delete">
-                                            <i class="bi bi-trash-fill"></i>
+                                            <i class="fa fa-trash-o"></i>
                                         </button>
                                     </form>
                                 @else

@@ -90,17 +90,17 @@
                                 @if($schedule->status !== 'done')
                                     <a href="{{ route('maintenance.create', ['schedule_id' => $schedule->id]) }}"
                                        class="btn btn-outline-primary" title="Input Maintenance">
-                                        <i class="bi bi-tools"></i>
+                                        <i class="icon-eye"></i>
                                     </a>
                                 @endif
                                 <a href="{{ route('schedules.edit', $schedule) }}" class="btn btn-outline-warning" title="Edit">
-                                    <i class="bi bi-pencil-fill"></i>
+                                    <i class="icon-pencil"></i>
                                 </a>
                                 <form method="POST" action="{{ route('schedules.destroy', $schedule) }}"
                                       onsubmit="return confirm('Delete this schedule?')">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="btn btn-outline-danger" title="Delete">
-                                        <i class="bi bi-trash-fill"></i>
+                                        <i class="icon-trash"></i>
                                     </button>
                                 </form>
                             </div>
@@ -109,7 +109,7 @@
                     @empty
                     <tr>
                         <td colspan="6" class="text-center py-5 text-muted">
-                            <i class="bi bi-calendar-x fs-1 d-block opacity-25 mb-2"></i>
+                            <i class="icon-eye fs-1 d-block opacity-25 mb-2"></i>
                             No schedules found.
                         </td>
                     </tr>

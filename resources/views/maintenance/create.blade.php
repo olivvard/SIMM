@@ -76,7 +76,7 @@
 
                 <div class="table-responsive">
                     <table class="table table-bordered align-middle" id="activity-table">
-                        <thead class="table-dark">
+                        <thead class="table-primary">
                             <tr>
                                 <th width="70">Code</th>
                                 <th>Activity Name</th>

@@ -85,7 +85,7 @@
                     <tbody>
                         @foreach($schedule->maintenanceLogs as $log)
                         <tr>
-                            <td>{{ $log->inspection_date->format('d M Y') }}</td>
+                            <td>{{ $log->inspection_date?->format('d M Y') ?? '—' }}</td>
                             <td>{{ $log->admin->full_name }}</td>
                             <td class="text-center">
                                 <a href="{{ route('maintenance.show', $log) }}" class="btn btn-sm btn-outline-info">

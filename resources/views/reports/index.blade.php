@@ -163,7 +163,7 @@
                                 <td>
                                     <a href="{{ route('maintenance.show', $log) }}"
                                        class="btn btn-sm btn-outline-info view-btn">
-                                        <i class="bi bi-eye-fill"></i>
+                                        <i class="fa fa-eye"></i>
                                     </a>
                                 </td>
                             </tr>

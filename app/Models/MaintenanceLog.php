@@ -4,6 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * App\Models\MaintenanceLog
+ *
+ * @property int $id
+ * @property int $motor_id
+ * @property int $schedule_id
+ * @property int $admin_id
+ * @property \Illuminate\Support\Carbon $inspection_date
+ * @property string|null $general_notes
+ * @property string|null $photo_url
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class MaintenanceLog extends Model
 {
     protected $fillable = [
@@ -15,9 +28,12 @@ class MaintenanceLog extends Model
         'photo_url',
     ];
 
-    protected $casts = [
-        'inspection_date' => 'date',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'inspection_date' => 'date',
+        ];
+    }
 
     // Relations
     public function motor()
