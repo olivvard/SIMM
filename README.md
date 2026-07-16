@@ -141,11 +141,12 @@ php artisan schedules:check-deadlines
 
 ## Features
 
+- **Authentication** – Login, Registration, and Profile Update functionality
 - **Dashboard** – Stat cards, upcoming schedules (H-3), real-time Reverb toast alerts
 - **Motors** – Full CRUD with soft delete, search, complete maintenance history
 - **Schedules** – CRUD with status filter, auto-overdue detection
 - **Maintenance Input** – Schedule selection → auto-fill motor, 15-activity checklist, photo upload
-- **Reports** – Monthly/motor filter, PDF (DomPDF) and Excel (Maatwebsite) export
+- **Reports** – Monthly/motor filter, enhanced PDF (DomPDF) and Excel (Maatwebsite) export
 - **Real-time** – ScheduleAlert event broadcasts approaching/overdue notices via Reverb
 - **Artisan Command** – `schedules:check-deadlines` marks overdue and broadcasts approaching (≤3 days)
 
