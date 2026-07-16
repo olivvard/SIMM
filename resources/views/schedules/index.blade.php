@@ -53,7 +53,6 @@
                     <tr>
                         <th>#</th>
                         <th>Motor</th>
-                        <th>Period</th>
                         <th>Schedule Date</th>
                         <th>Status</th>
                         <th class="text-center">Actions</th>
@@ -71,7 +70,6 @@
                                 @endif
                             </div>
                         </td>
-                        <td>{{ $schedule->period }}</td>
                         <td>{{ $schedule->schedule_date->format('d M Y') }}</td>
                         <td>
                             @php

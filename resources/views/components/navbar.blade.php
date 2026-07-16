@@ -25,9 +25,12 @@
                     <div class="mode pointer"><i class="fa fa-moon-o"></i></div>
                 </li>
                 <li class="onhover-dropdown p-0">
-                    <button class="btn btn-primary-light" type="button"><a href="{{ route('logout') }}"><i
-                                data-feather="log-out"></i>Log
-                            out</a></button>
+                    <form action="{{ route('logout') }}" method="POST" style="display: inline;">
+                        @csrf
+                        <button class="btn btn-primary-light" type="submit">
+                            <i data-feather="log-out"></i>Log out
+                        </button>
+                    </form>
                 </li>
             </ul>
         </div>

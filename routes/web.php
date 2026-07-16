@@ -6,6 +6,7 @@ use App\Http\Controllers\MotorController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\MaintenanceLogController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 // ── Public: Auth ──────────────────────────────────────────────────────────────
@@ -13,12 +14,18 @@ Route::get('/',        [AuthController::class, 'showLogin'])->name('login');
 Route::get('/login',   [AuthController::class, 'showLogin'])->name('login.show');
 Route::post('/login',  [AuthController::class, 'login'])->name('login.submit');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/register',   [AuthController::class, 'showRegister'])->name('register.show');
+Route::post('/register', [AuthController::class, 'register'])->name('register');
 
 // ── Protected: Admin only ─────────────────────────────────────────────────────
 Route::middleware(['admin'])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Admin Profile
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+    Route::patch('/profile/picture', [ProfileController::class, 'updatePicture'])->name('profile.update_picture');
 
     // Motors
     Route::get('/motors/trashed/{id}/restore', [MotorController::class, 'restore'])->name('motors.restore');

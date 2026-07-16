@@ -50,7 +50,6 @@
                         <th>Code</th>
                         <th>Location</th>
                         <th>Category</th>
-                        <th>Install Date</th>
                         <th>Status</th>
                         <th class="text-center">Actions</th>
                     </tr>
@@ -62,7 +61,6 @@
                         <td><span class="fw-semibold text-primary">{{ $motor->motor_code }}</span></td>
                         <td><span class="badge badge-location">{{ $motor->location }} ({{ $motor->area }})</span></td>
                         <td>{{ $motor->category }} HP</td>
-                        <td>{{ $motor->installation_date->format('d M Y') }}</td>
                         <td>
                             @if($motor->trashed())
                                 <span class="badge bg-secondary">Deleted</span>

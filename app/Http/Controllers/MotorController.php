@@ -42,7 +42,6 @@ class MotorController extends Controller
             'location'          => ['required', 'in:MA-1,MA-2,MA-3,MA-4'],
             'area'              => ['required', 'in:DHDT,COOKER,HVU,DCU,RX,PL-2,PL-1,H2P,HCC,PLTU,WTP,HDC,EX-BOILER,JETTY-1,JETTY-3,LPG,JETTY-2,PUMP-HOUSE,SEPARATOR'],
             'category'          => ['required', 'in:<100,100-500,>500'],
-            'installation_date' => ['required', 'date'],
         ]);
 
         Motor::create($validated);
@@ -73,7 +72,6 @@ class MotorController extends Controller
             'location'          => ['required', 'in:MA-1,MA-2,MA-3,MA-4'],
             'area'              => ['required', 'in:DHDT,COOKER,HVU,DCU,RX,PL-2,PL-1,H2P,HCC,PLTU,WTP,HDC,EX-BOILER,JETTY-1,JETTY-3,LPG,JETTY-2,PUMP-HOUSE,SEPARATOR'],
             'category'          => ['required', 'in:<100,100-500,>500'],
-            'installation_date' => ['required', 'date'],
         ]);
 
         $motor->update($validated);

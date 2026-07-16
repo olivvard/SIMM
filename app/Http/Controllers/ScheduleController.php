@@ -39,7 +39,6 @@ class ScheduleController extends Controller
         $validated = $request->validate([
             'motor_id'      => ['required', 'exists:motors,id'],
             'schedule_date' => ['required', 'date'],
-            'period'        => ['required', 'string', 'max:50'],
         ]);
 
         // Auto-set overdue if date is in the past
@@ -72,7 +71,6 @@ class ScheduleController extends Controller
         $validated = $request->validate([
             'motor_id'      => ['required', 'exists:motors,id'],
             'schedule_date' => ['required', 'date'],
-            'period'        => ['required', 'string', 'max:50'],
             'status'        => ['required', 'in:pending,done,overdue'],
         ]);
 

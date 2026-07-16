@@ -14,14 +14,11 @@ class Motor extends Model
         'location',
         'area',
         'category',
-        'installation_date',
     ];
 
     protected function casts(): array
     {
-        return [
-            'installation_date' => 'date',
-        ];
+        return [];
     }
 
     // Relations

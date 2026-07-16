@@ -55,13 +55,6 @@
                             @error('category')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
-                        <div class="col-md-6">
-                            <label for="installation_date" class="form-label fw-semibold">Installation Date <span class="text-danger">*</span></label>
-                            <input type="date" id="installation_date" name="installation_date"
-                                class="form-control @error('installation_date') is-invalid @enderror"
-                                value="{{ old('installation_date', $motor->installation_date->format('Y-m-d')) }}" required>
-                            @error('installation_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
                     </div>
 
                     <div class="d-flex gap-2 mt-4">

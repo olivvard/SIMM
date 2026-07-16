@@ -29,8 +29,6 @@
                         <dt class="col-sm-5 text-muted">Category</dt>
                         <dd class="col-sm-7">{{ $motor->category }} HP</dd>
 
-                        <dt class="col-sm-5 text-muted">Install Date</dt>
-                        <dd class="col-sm-7">{{ $motor->installation_date->format('d M Y') }}</dd>
 
                         <dt class="col-sm-5 text-muted">Status</dt>
                         <dd class="col-sm-7">
@@ -109,7 +107,6 @@
                                 aria-expanded="{{ $i === 0 ? 'true' : 'false' }}">
                                 <div class="d-flex align-items-center gap-3 w-100 me-3">
                                     <span class="badge bg-primary">{{ $log->inspection_date?->format('d M Y') ?? '—' }}</span>
-                                    <span class="fw-semibold">{{ $log->schedule->period ?? 'N/A' }}</span>
                                     <span class="text-muted small ms-auto">By: {{ $log->admin->full_name }}</span>
                                 </div>
                             </button>

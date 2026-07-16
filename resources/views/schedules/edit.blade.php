@@ -31,14 +31,6 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="period" class="form-label fw-semibold">Period <span class="text-danger">*</span></label>
-                        <input type="text" id="period" name="period"
-                            class="form-control @error('period') is-invalid @enderror"
-                            value="{{ old('period', $schedule->period) }}" required>
-                        @error('period')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="mb-3">
                         <label for="schedule_date" class="form-label fw-semibold">Schedule Date <span class="text-danger">*</span></label>
                         <input type="date" id="schedule_date" name="schedule_date"
                             class="form-control @error('schedule_date') is-invalid @enderror"

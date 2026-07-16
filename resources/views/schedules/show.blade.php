@@ -40,8 +40,6 @@
                         @endif
                     </dd>
 
-                    <dt class="col-sm-4 text-muted">Period</dt>
-                    <dd class="col-sm-8">{{ $schedule->period }}</dd>
 
                     <dt class="col-sm-4 text-muted">Schedule Date</dt>
                     <dd class="col-sm-8 fw-semibold">{{ $schedule->schedule_date->format('d M Y') }}</dd>
