@@ -7,6 +7,8 @@ use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\MaintenanceLogController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\IntegrityController;
+use App\Http\Controllers\ActivityLogController;
 use Illuminate\Support\Facades\Route;
 
 // ── Public: Auth ──────────────────────────────────────────────────────────────
@@ -22,6 +24,12 @@ Route::middleware(['admin'])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Integrity Check (Polling endpoint untuk deteksi tampering via phpMyAdmin)
+    Route::get('/integrity-check', [IntegrityController::class, 'check'])->name('integrity.check');
+
+    // Activity Logs
+    Route::get('/activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
 
     // Admin Profile
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');

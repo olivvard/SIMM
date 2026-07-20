@@ -6,6 +6,7 @@ use App\Models\MaintenanceLog;
 use App\Models\Schedule;
 use App\Models\Motor;
 use App\Models\Activity;
+use App\Models\ActivityLog;
 use App\Events\ScheduleAlert;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,11 +42,11 @@ class MaintenanceLogController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'schedule_id'    => ['required', 'exists:schedules,id'],
-            'inspection_date'=> ['required', 'date'],
-            'general_notes'  => ['nullable', 'string'],
-            'photo'          => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
-            'activities'     => ['required', 'array'],
+            'schedule_id'          => ['required', 'exists:schedules,id'],
+            'inspection_date'      => ['required', 'date'],
+            'general_notes'        => ['nullable', 'string'],
+            'photo'                => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'activities'           => ['required', 'array'],
             'activities.*.is_done' => ['nullable', 'boolean'],
             'activities.*.notes'   => ['nullable', 'string'],
         ]);
@@ -59,21 +60,28 @@ class MaintenanceLogController extends Controller
             $photoUrl = $path;
         }
 
-        // Create maintenance log
+        // ── [DATA PROTECTION] PASSWORD HASHING ──────────────────────────────
+        // Admin sudah terautentikasi — passwordnya di-hash via Bcrypt (AuthController).
+        $adminId = Auth::id();
+
+        // Buat maintenance log
         $log = MaintenanceLog::create([
             'motor_id'        => $schedule->motor_id,
             'schedule_id'     => $schedule->id,
-            'admin_id'        => Auth::id(),
+            'admin_id'        => $adminId,
             'inspection_date' => $validated['inspection_date'],
             'general_notes'   => $validated['general_notes'] ?? null,
             'photo_url'       => $photoUrl,
         ]);
 
-        // Create 15 activity detail rows
+        // ── [DATA PROTECTION] DIGITAL SIGNATURE ─────────────────────────────
+        $log->update(['digital_signature' => $log->generateSignature()]);
+
+        // Create activity detail rows
         foreach ($request->input('activities', []) as $activityId => $data) {
             $log->activityDetails()->create([
                 'activity_id' => $activityId,
-                'is_done'     => isset($data['is_done']) ? (bool)$data['is_done'] : false,
+                'is_done'     => isset($data['is_done']) ? (bool) $data['is_done'] : false,
                 'notes'       => $data['notes'] ?? null,
             ]);
         }
@@ -89,6 +97,16 @@ class MaintenanceLogController extends Controller
             type:         'done'
         ))->toOthers();
 
+        // ── [ACTIVITY LOG] Maintenance log dibuat ───────────────────────────
+        ActivityLog::record(
+            module:      'Maintenance',
+            action:      'create',
+            description: 'Admin "' . Auth::user()->full_name . '" membuat maintenance log #' . $log->id
+                         . ' untuk motor "' . ($schedule->motor->motor_code ?? 'Unknown') . '"'
+                         . ' pada tanggal ' . $validated['inspection_date'] . '.',
+            status:      'normal'
+        );
+
         return redirect()->route('maintenance.index')
             ->with('success', 'Maintenance log recorded successfully.');
     }
@@ -97,17 +115,32 @@ class MaintenanceLogController extends Controller
     {
         $maintenanceLog->load(['motor', 'schedule', 'admin', 'activityDetails.activity']);
 
-        return view('maintenance.show', compact('maintenanceLog'));
+        // ── [DATA PROTECTION] Verifikasi Digital Signature ──────────────────
+        $isVerified = $maintenanceLog->verifySignature();
+
+        return view('maintenance.show', compact('maintenanceLog', 'isVerified'));
     }
 
     public function destroy(MaintenanceLog $maintenanceLog)
     {
+        $logId     = $maintenanceLog->id;
+        $motorCode = $maintenanceLog->motor?->motor_code ?? 'Unknown';
+
         // Delete photo if exists
         if ($maintenanceLog->photo_url) {
             Storage::disk('public')->delete($maintenanceLog->photo_url);
         }
 
         $maintenanceLog->delete();
+
+        // ── [ACTIVITY LOG] Maintenance log dihapus ──────────────────────────
+        ActivityLog::record(
+            module:      'Maintenance',
+            action:      'delete',
+            description: 'Admin "' . Auth::user()->full_name . '" menghapus maintenance log #' . $logId
+                         . ' (motor: "' . $motorCode . '").',
+            status:      'warning'
+        );
 
         return redirect()->route('maintenance.index')
             ->with('success', 'Maintenance log deleted.');

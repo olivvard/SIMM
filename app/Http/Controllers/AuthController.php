@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Models\ActivityLog;
 
 class AuthController extends Controller
 {
@@ -28,9 +29,26 @@ class AuthController extends Controller
         if (Auth::attempt(['username' => $credentials['username'], 'password' => $credentials['password']], $request->boolean('remember'))) {
             $request->session()->regenerate();
 
+            // ── [ACTIVITY LOG] Login berhasil ────────────────────────────────
+            ActivityLog::record(
+                module:      'Auth',
+                action:      'login',
+                description: 'Admin "' . Auth::user()->full_name . '" berhasil login ke sistem.',
+                status:      'normal'
+            );
+
             return redirect()->intended(route('dashboard'))
                 ->with('success', 'Welcome back, ' . Auth::user()->full_name . '!');
         }
+
+        // ── [ACTIVITY LOG] Login gagal (percobaan akses ilegal) ──────────────
+        ActivityLog::record(
+            module:      'Auth',
+            action:      'login_failed',
+            description: 'Percobaan login gagal untuk username: "' . $credentials['username'] . '".',
+            status:      'warning',
+            adminId:     null  // belum diketahui siapa
+        );
 
         return back()->withErrors([
             'username' => 'The provided credentials do not match our records.',
@@ -50,15 +68,15 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'full_name' => ['required', 'string', 'max:255'],
-            'username' => ['required', 'string', 'max:255', 'unique:users,username'],
-            'email' => ['required', 'string', 'email', 'max:255'],
-            'picture' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'username'  => ['required', 'string', 'max:255', 'unique:users,username'],
+            'email'     => ['required', 'string', 'email', 'max:255'],
+            'picture'   => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+            'password'  => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
         $picturePath = null;
         if ($request->hasFile('picture')) {
-            $file = $request->file('picture');
+            $file     = $request->file('picture');
             $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
             $file->move(public_path('uploads/profiles'), $filename);
             $picturePath = 'uploads/profiles/' . $filename;
@@ -66,14 +84,22 @@ class AuthController extends Controller
 
         $user = User::create([
             'full_name' => $validated['full_name'],
-            'username' => $validated['username'],
-            'email' => $validated['email'],
-            'picture' => $picturePath,
-            'password' => Hash::make($validated['password']),
+            'username'  => $validated['username'],
+            'email'     => $validated['email'],
+            'picture'   => $picturePath,
+            'password'  => Hash::make($validated['password']),
         ]);
 
         Auth::login($user);
         $request->session()->regenerate();
+
+        // ── [ACTIVITY LOG] Registrasi admin baru ────────────────────────────
+        ActivityLog::record(
+            module:      'Auth',
+            action:      'register',
+            description: 'Akun admin baru "' . $user->full_name . '" (username: ' . $user->username . ') berhasil didaftarkan.',
+            status:      'normal'
+        );
 
         return redirect()->route('dashboard')
             ->with('success', 'Registration successful. Welcome to the Motor PM System!');
@@ -81,8 +107,15 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::logout();
+        // ── [ACTIVITY LOG] Logout ────────────────────────────────────────────
+        ActivityLog::record(
+            module:      'Auth',
+            action:      'logout',
+            description: 'Admin "' . Auth::user()->full_name . '" logout dari sistem.',
+            status:      'normal'
+        );
 
+        Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
