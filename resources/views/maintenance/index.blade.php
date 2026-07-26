@@ -41,9 +41,11 @@
             Tick the rows you want, then click <strong>Download Selected</strong>.
         </span>
 
+        @if(Auth::user()->isTeknisi())
         <a href="{{ route('maintenance.create') }}" class="btn btn-primary">
             <i class="fa fa-plus-square"></i> New Maintenance Input
         </a>
+        @endif
     </div>
 </div>
 
@@ -121,6 +123,7 @@
                                    class="btn btn-outline-info view-btn" title="View">
                                     <i class="fa fa-eye"></i>
                                 </a>
+                                @if(Auth::user()->isTeknisi())
                                 <form method="POST" action="{{ route('maintenance.destroy', $log) }}"
                                       onsubmit="return confirm('Delete this maintenance log?')">
                                     @csrf @method('DELETE')
@@ -128,6 +131,7 @@
                                         <i class="fa fa-trash"></i>
                                     </button>
                                 </form>
+                                @endif
                             </div>
                         </td>
                     </tr>

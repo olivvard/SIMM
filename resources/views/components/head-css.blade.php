@@ -44,3 +44,16 @@
 <link id="color" rel="stylesheet" href="{{ asset('assets/css/color-1.css') }}" media="screen">
 <!-- Responsive css-->
 <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/responsive.css') }}">
+
+<!-- Custom overrides -->
+<style>
+    .badge-location {
+        background-color: #eff6ff !important;
+        color: #2563eb !important;
+        border: 1px solid #bfdbfe !important;
+        font-weight: 600;
+        padding: 5px 10px;
+        border-radius: 6px;
+        display: inline-block;
+    }
+</style>

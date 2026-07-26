@@ -5,9 +5,11 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mt-3 mb-4">
     <p class="text-muted mb-0">Manage preventive maintenance schedules for all motors.</p>
+    @if(Auth::user()->isAdmin())
     <a href="{{ route('schedules.create') }}" class="btn btn-primary">
         <i class="bi bi-plus-circle-fill me-1"></i> Add Schedule
     </a>
+    @endif
 </div>
 
 {{-- Filters --}}
@@ -85,22 +87,24 @@
                         </td>
                         <td class="text-center">
                             <div class="btn-group btn-group-sm">
-                                @if($schedule->status !== 'done')
+                                @if(Auth::user()->isTeknisi() && $schedule->status !== 'done')
                                     <a href="{{ route('maintenance.create', ['schedule_id' => $schedule->id]) }}"
                                        class="btn btn-outline-primary" title="Input Maintenance">
                                         <i class="icon-eye"></i>
                                     </a>
                                 @endif
-                                <a href="{{ route('schedules.edit', $schedule) }}" class="btn btn-outline-warning" title="Edit">
-                                    <i class="icon-pencil"></i>
-                                </a>
-                                <form method="POST" action="{{ route('schedules.destroy', $schedule) }}"
-                                      onsubmit="return confirm('Delete this schedule?')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-outline-danger" title="Delete">
-                                        <i class="icon-trash"></i>
-                                    </button>
-                                </form>
+                                @if(Auth::user()->isAdmin())
+                                    <a href="{{ route('schedules.edit', $schedule) }}" class="btn btn-outline-warning" title="Edit">
+                                        <i class="icon-pencil"></i>
+                                    </a>
+                                    <form method="POST" action="{{ route('schedules.destroy', $schedule) }}"
+                                          onsubmit="return confirm('Delete this schedule?')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                            <i class="icon-trash"></i>
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </td>
                     </tr>

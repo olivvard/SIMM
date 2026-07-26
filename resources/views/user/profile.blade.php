@@ -44,7 +44,7 @@
                             <div class="user-designation">
                                 <div class="title"><a target="_blank" href="">
                                         <h4>{{ Auth::user()->full_name }}</h4>
-                                        <h6>{{ Auth::user()->username }}</h6>
+                                        <h6>{{ Auth::user()->username }} — <span class="badge bg-primary">{{ ucfirst(Auth::user()->role ?? 'admin') }}</span></h6>
                                     </a></div>
                                 <div class="social-media">
                                     <ul class="user-list-social">

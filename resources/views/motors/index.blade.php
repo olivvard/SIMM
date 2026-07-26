@@ -7,9 +7,11 @@
     <div>
         <p class="text-muted mb-0">Manage all registered motors including soft-deleted records.</p>
     </div>
+    @if(Auth::user()->isAdmin())
     <a href="{{ route('motors.create') }}" class="btn btn-primary">
         <i class="bi bi-plus-circle-fill me-1"></i> Add Motor
     </a>
+    @endif
 </div>
 
 {{-- Search & Filter --}}
@@ -74,28 +76,32 @@
                                     <a href="{{ route('motors.show', $motor) }}" class="btn btn-outline-info mx-1" title="View">
                                         <i class="fa fa-eye"></i>
                                     </a>
-                                    <a href="{{ route('motors.edit', $motor) }}" class="btn btn-outline-warning mx-1" title="Edit">
-                                        <i class="fa fa-edit"></i>
-                                    </a>
-                                    <form method="POST" action="{{ route('motors.destroy', $motor) }}" onsubmit="return confirm('Soft-delete this motor?')">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="btn btn-outline-danger mx-1" title="Soft Delete">
-                                            <i class="fa fa-trash-o"></i>
-                                        </button>
-                                    </form>
+                                    @if(Auth::user()->isAdmin())
+                                        <a href="{{ route('motors.edit', $motor) }}" class="btn btn-outline-warning mx-1" title="Edit">
+                                            <i class="fa fa-edit"></i>
+                                        </a>
+                                        <form method="POST" action="{{ route('motors.destroy', $motor) }}" onsubmit="return confirm('Soft-delete this motor?')">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="btn btn-outline-danger mx-1" title="Soft Delete">
+                                                <i class="fa fa-trash-o"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                 @else
-                                    <form method="POST" action="{{ route('motors.restore', $motor->id) }}" onsubmit="return confirm('Restore this motor?')">
-                                        @csrf
-                                        <button type="submit" class="btn btn-outline-success btn-sm" title="Restore">
-                                            <i class="bi bi-arrow-counterclockwise"></i>
-                                        </button>
-                                    </form>
-                                    <form method="POST" action="{{ route('motors.forceDelete', $motor->id) }}" onsubmit="return confirm('PERMANENTLY delete? This cannot be undone.')">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm" title="Force Delete">
-                                            <i class="bi bi-x-circle-fill"></i>
-                                        </button>
-                                    </form>
+                                    @if(Auth::user()->isAdmin())
+                                        <form method="POST" action="{{ route('motors.restore', $motor->id) }}" onsubmit="return confirm('Restore this motor?')">
+                                            @csrf
+                                            <button type="submit" class="btn btn-outline-success btn-sm" title="Restore">
+                                                <i class="bi bi-arrow-counterclockwise"></i>
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{{ route('motors.forceDelete', $motor->id) }}" onsubmit="return confirm('PERMANENTLY delete? This cannot be undone.')">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm" title="Force Delete">
+                                                <i class="bi bi-x-circle-fill"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                 @endif
                             </div>
                         </td>

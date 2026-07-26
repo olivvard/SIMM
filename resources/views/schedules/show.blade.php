@@ -11,9 +11,11 @@
                     <i class="bi bi-calendar-check-fill me-2 text-primary"></i>Schedule #{{ $schedule->id }}
                 </h6>
                 <div class="d-flex gap-2">
+                    @if(Auth::user()->isAdmin())
                     <a href="{{ route('schedules.edit', $schedule) }}" class="btn btn-sm btn-outline-warning">
                         <i class="bi bi-pencil-fill me-1"></i>Edit
                     </a>
+                    @endif
                     <a href="{{ route('schedules.index') }}" class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-arrow-left me-1"></i>Back
                     </a>

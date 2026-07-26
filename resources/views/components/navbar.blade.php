@@ -5,13 +5,13 @@
         <div class="main-header-left">
             {{-- Logo: diberi fixed width agar tidak gepeng di mobile --}}
             <div class="logo-wrapper">
-                <a href="{{ route('dashboard') }}">
+                <a href="{{ Auth::user()?->isTeknisi() ? route('maintenance.index') : route('dashboard') }}">
                     <img src="{{ asset('wea-new.png') }}" alt="WEA"
                          style="height: 40px; width: auto; max-width: 140px; object-fit: contain;">
                 </a>
             </div>
             <div class="dark-logo-wrapper">
-                <a href="{{ route('dashboard') }}">
+                <a href="{{ Auth::user()?->isTeknisi() ? route('maintenance.index') : route('dashboard') }}">
                     <img src="{{ asset('wea-new.png') }}" alt="WEA"
                          style="height: 40px; width: auto; max-width: 140px; object-fit: contain;">
                 </a>

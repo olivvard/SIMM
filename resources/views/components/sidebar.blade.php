@@ -7,7 +7,7 @@
                 style="width:90px; height:90px; object-fit:cover;">
         </a>
         <h6 class="mt-3 f-14 f-w-600">{{ Auth::user()->full_name }}</h6>
-        <p class="mb-0 font-roboto">Admin WEA PM Motor</p>
+        <p class="mb-0 font-roboto">{{ Auth::user()->isTeknisi() ? 'Teknisi WEA PM Motor' : 'Admin WEA PM Motor' }}</p>
     </div>
 
     <nav>
@@ -80,6 +80,15 @@
                         </a>
                     </li>
 
+                    @if(Auth::user()->isAdmin())
+                    <li class="dropdown">
+                        <a href="{{ route('backup.index') }}"
+                           class="nav-link {{ request()->routeIs('backup.*') ? 'active' : '' }}">
+                            <i data-feather="database"></i>
+                            <span>Backup & Recovery</span>
+                        </a>
+                    </li>
+                    @endif
                 </ul>
             </div>
             <div class="right-arrow" id="right-arrow"><i data-feather="arrow-right"></i></div>

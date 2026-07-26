@@ -14,9 +14,11 @@
                     <h6 class="card-panel__title mb-0">
                         <i class="bi bi-lightning-charge-fill me-2 text-primary"></i>Motor Info
                     </h6>
+                    @if(Auth::user()->isAdmin())
                     <a href="{{ route('motors.edit', $motor) }}" class="btn btn-sm btn-outline-warning">
                         <i class="bi bi-pencil-fill me-1"></i>Edit
                     </a>
+                    @endif
                 </div>
                 <div class="card-body">
                     <dl class="row mb-0">
