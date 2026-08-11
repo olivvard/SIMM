@@ -44,3 +44,73 @@
 <link id="color" rel="stylesheet" href="{{ asset('assets/css/color-1.css') }}" media="screen">
 <!-- Responsive css-->
 <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/responsive.css') }}">
+
+<!-- Custom overrides -->
+<style>
+    .badge-location {
+        background-color: #eff6ff !important;
+        color: #2563eb !important;
+        border: 1px solid #bfdbfe !important;
+        font-weight: 600;
+        padding: 5px 10px;
+        border-radius: 6px;
+        display: inline-block;
+    }
+
+    /* Fix Sidebar Glitch / Squished Layout on Medium and Mobile Screens */
+    @media (max-width: 991.98px) {
+        body .page-wrapper.compact-wrapper .page-body-wrapper header.main-nav {
+            width: 290px !important;
+            left: -290px !important;
+            top: 65px !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            z-index: 1000 !important;
+            transition: left 0.3s ease, opacity 0.3s ease, visibility 0.3s ease !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        body .page-wrapper.compact-wrapper .page-body-wrapper header.main-nav.close_icon {
+            left: -290px !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }
+
+        body .page-wrapper.compact-wrapper .page-body-wrapper header.main-nav:not(.close_icon) {
+            left: 0 !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        /* Restore centered profile layout instead of squished floated layout */
+        body .page-wrapper.compact-wrapper .page-body-wrapper header .sidebar-user {
+            padding: 30px 20px !important;
+            text-align: center !important;
+        }
+
+        body .page-wrapper.compact-wrapper .page-body-wrapper header .sidebar-user img {
+            width: 90px !important;
+            height: 90px !important;
+            float: none !important;
+            margin: 0 auto !important;
+            border-width: 4px !important;
+            object-fit: cover !important;
+        }
+
+        body .page-wrapper.compact-wrapper .page-body-wrapper header .sidebar-user h6 {
+            margin-top: 15px !important;
+            padding-left: 0 !important;
+            text-align: center !important;
+        }
+
+        body .page-wrapper.compact-wrapper .page-body-wrapper header .sidebar-user p {
+            padding-left: 0 !important;
+            text-align: center !important;
+            max-width: none !important;
+        }
+        
+        body .page-wrapper.compact-wrapper .page-body-wrapper header .main-navbar .nav-menu {
+            height: calc(100vh - 280px) !important;
+        }
+    }
+</style>

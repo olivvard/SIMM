@@ -4,6 +4,23 @@
 
 @section('content')
 <div class="mt-3">
+
+    {{-- Header Actions Bar --}}
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <a href="{{ route('maintenance.index') }}" class="btn btn-outline-secondary">
+            <i class="fa fa-arrow-left me-1"></i> Kembali ke Daftar
+        </a>
+
+        {{-- Export PDF: POST ke reports.pdf.post dengan log_id ini --}}
+        <form method="POST" action="{{ route('reports.pdf.post') }}" target="_blank" style="display:inline;">
+            @csrf
+            <input type="hidden" name="log_ids[]" value="{{ $maintenanceLog->id }}">
+            <button type="submit" class="btn btn-danger">
+                <i class="fa fa-file-pdf-o me-1"></i> Export PDF
+            </button>
+        </form>
+    </div>
+
     <div class="row g-4 mb-4">
         {{-- Header Info --}}
         <div class="col-lg-6">
@@ -12,9 +29,6 @@
                     <h6 class="card-panel__title mb-0">
                         <i class="bi bi-file-text-fill me-2 text-primary"></i>Log Information
                     </h6>
-                    <a href="{{ route('maintenance.index') }}" class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-arrow-left me-1"></i>Back
-                    </a>
                 </div>
                 <div class="card-body">
                     <dl class="row mb-0">

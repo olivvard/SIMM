@@ -4,46 +4,16 @@
 
 @section('content')
 
-{{-- Hidden POST form for selected PDF export --}}
-<form id="pdfSelectionForm" method="POST" action="{{ route('reports.pdf.post') }}" target="_blank">
-    @csrf
-    {{-- selected log_ids are injected here dynamically by JS --}}
-</form>
 
 <div class="d-flex justify-content-between align-items-center mt-3 mb-4 flex-wrap gap-2">
     <p class="text-muted mb-0">All recorded maintenance logs.</p>
 
-    <div class="d-flex align-items-center gap-2 flex-wrap">
-
-        {{-- Default: Export PDF button --}}
-        <button type="button" id="btnEnableSelect"
-                class="btn btn-danger"
-                onclick="enableSelectionMode()">
-            <i class="fa fa-download"></i> Export PDF
-        </button>
-
-        {{-- Selection mode: Download + Cancel --}}
-        <button type="button" id="btnDownloadSelected"
-                class="btn btn-danger d-none"
-                onclick="submitSelection()" disabled>
-            <i class="fa fa-download"></i>  Download Selected
-            <span id="selectedCount" class="badge bg-white text-danger ms-1">0</span>
-        </button>
-        <button type="button" id="btnCancelSelect"
-                class="btn btn-outline-secondary d-none"
-                onclick="disableSelectionMode()">
-            <i class="bi bi-x me-1"></i>Cancel
-        </button>
-
-        {{-- Hint text --}}
-        <span id="selectionHint" class="text-muted small d-none ms-1">
-            <i class="bi bi-info-circle me-1"></i>
-            Tick the rows you want, then click <strong>Download Selected</strong>.
-        </span>
-
+    <div class="d-flex align-items-center gap-2">
+        @if(Auth::user()->isTeknisi())
         <a href="{{ route('maintenance.create') }}" class="btn btn-primary">
             <i class="fa fa-plus-square"></i> New Maintenance Input
         </a>
+        @endif
     </div>
 </div>
 
@@ -55,14 +25,6 @@
             <i class="bi bi-journal-text me-2 text-primary"></i>
             Logs — {{ $logs->total() }} record(s)
         </h6>
-        <div id="selectAllWrapper" class="d-none">
-            <div class="form-check mb-0 d-flex align-items-center gap-2">
-                <input class="form-check-input" type="checkbox" id="checkAll"
-                       style="width:1.1rem;height:1.1rem;cursor:pointer;"
-                       onchange="toggleAll(this)">
-                <label class="form-check-label small fw-semibold" for="checkAll">Select All</label>
-            </div>
-        </div>
     </div>
 
     <div class="card-body p-0">
@@ -70,8 +32,6 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        {{-- Checkbox column — hidden until selection mode --}}
-                        <th id="thCheck" class="d-none" style="width:40px;"></th>
                         <th>#</th>
                         <th>Inspection Date</th>
                         <th>Motor</th>
@@ -83,15 +43,7 @@
                 </thead>
                 <tbody>
                     @forelse($logs as $i => $log)
-                    <tr class="log-row" data-id="{{ $log->id }}" onclick="handleRowClick(this)" style="cursor:default;">
-                        {{-- Checkbox cell --}}
-                        <td class="td-check d-none" style="width:40px;">
-                            <input type="checkbox"
-                                   class="form-check-input log-checkbox"
-                                   value="{{ $log->id }}"
-                                   style="width:1.1rem;height:1.1rem;cursor:pointer;"
-                                   onchange="updateCount()">
-                        </td>
+                    <tr>
                         <td>{{ $logs->firstItem() + $i }}</td>
                         <td>
                             <span class="fw-semibold">{{ $log->inspection_date?->format('d M Y') ?? '—' }}</span>
@@ -121,6 +73,7 @@
                                    class="btn btn-outline-info view-btn" title="View">
                                     <i class="fa fa-eye"></i>
                                 </a>
+                                @if(Auth::user()->isTeknisi())
                                 <form method="POST" action="{{ route('maintenance.destroy', $log) }}"
                                       onsubmit="return confirm('Delete this maintenance log?')">
                                     @csrf @method('DELETE')
@@ -128,12 +81,13 @@
                                         <i class="fa fa-trash"></i>
                                     </button>
                                 </form>
+                                @endif
                             </div>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="text-center py-5 text-muted">
+                        <td colspan="7" class="text-center py-5 text-muted">
                             <i class="bi bi-journal-x fs-1 d-block opacity-25 mb-2"></i>
                             No maintenance logs recorded yet.
                         </td>
@@ -154,108 +108,8 @@
 
 @push('scripts')
 <script>
-    let selectionMode = false;
-
-    function enableSelectionMode() {
-        selectionMode = true;
-
-        document.getElementById('btnEnableSelect').classList.add('d-none');
-        document.getElementById('btnDownloadSelected').classList.remove('d-none');
-        document.getElementById('btnCancelSelect').classList.remove('d-none');
-        document.getElementById('selectionHint').classList.remove('d-none');
-        document.getElementById('selectAllWrapper').classList.remove('d-none');
-
-        // Show checkbox column header + cells
-        document.getElementById('thCheck').classList.remove('d-none');
-        document.querySelectorAll('.td-check').forEach(td => td.classList.remove('d-none'));
-
-        // Make rows feel clickable
-        document.querySelectorAll('.log-row').forEach(row => row.style.cursor = 'pointer');
-
-        updateCount();
-    }
-
-    function disableSelectionMode() {
-        selectionMode = false;
-
-        document.getElementById('btnEnableSelect').classList.remove('d-none');
-        document.getElementById('btnDownloadSelected').classList.add('d-none');
-        document.getElementById('btnCancelSelect').classList.add('d-none');
-        document.getElementById('selectionHint').classList.add('d-none');
-        document.getElementById('selectAllWrapper').classList.add('d-none');
-
-        // Hide checkbox column & uncheck all
-        document.getElementById('thCheck').classList.add('d-none');
-        document.querySelectorAll('.td-check').forEach(td => td.classList.add('d-none'));
-        document.querySelectorAll('.log-checkbox').forEach(cb => cb.checked = false);
-        document.getElementById('checkAll').checked = false;
-        document.getElementById('checkAll').indeterminate = false;
-
-        // Reset row styles
-        document.querySelectorAll('.log-row').forEach(row => {
-            row.style.cursor = 'default';
-            row.classList.remove('table-primary');
-        });
-
-        updateCount();
-    }
-
-    function toggleAll(master) {
-        document.querySelectorAll('.log-checkbox').forEach(cb => cb.checked = master.checked);
-        document.querySelectorAll('.log-row').forEach(row => row.classList.toggle('table-primary', master.checked));
-        updateCount();
-    }
-
-    function handleRowClick(row) {
-        if (!selectionMode) return;
-
-        const cb = row.querySelector('.log-checkbox');
-        cb.checked = !cb.checked;
-        row.classList.toggle('table-primary', cb.checked);
-
-        const all     = document.querySelectorAll('.log-checkbox');
-        const checked = document.querySelectorAll('.log-checkbox:checked');
-        document.getElementById('checkAll').checked       = all.length === checked.length;
-        document.getElementById('checkAll').indeterminate = checked.length > 0 && checked.length < all.length;
-
-        updateCount();
-    }
-
-    function updateCount() {
-        const count = document.querySelectorAll('.log-checkbox:checked').length;
-        document.getElementById('selectedCount').textContent = count;
-
-        const btn = document.getElementById('btnDownloadSelected');
-        btn.disabled = count === 0;
-        btn.classList.toggle('opacity-50', count === 0);
-    }
-
-    function submitSelection() {
-        const selected = [...document.querySelectorAll('.log-checkbox:checked')].map(cb => cb.value);
-        if (selected.length === 0) {
-            alert('Please select at least one inspection to export.');
-            return;
-        }
-
-        const form = document.getElementById('pdfSelectionForm');
-
-        // Remove any previously injected hidden inputs
-        form.querySelectorAll('input[name="log_ids[]"]').forEach(el => el.remove());
-
-        // Inject selected IDs
-        selected.forEach(id => {
-            const input = document.createElement('input');
-            input.type  = 'hidden';
-            input.name  = 'log_ids[]';
-            input.value = id;
-            form.appendChild(input);
-        });
-
-        form.submit();
-    }
-
-    // Prevent row-click from firing when clicking the view button, delete button, or checkbox directly
-    document.querySelectorAll('.view-btn, .btn-outline-danger, .log-checkbox').forEach(el => {
+    // Prevent row-click from navigating when clicking action buttons
+    document.querySelectorAll('.view-btn, .btn-outline-danger').forEach(el => {
         el.addEventListener('click', e => e.stopPropagation());
     });
 </script>

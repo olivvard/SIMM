@@ -121,8 +121,7 @@
                                 <th>Inspection Date</th>
                                 <th>Motor</th>
                                 <th>Location</th>
-                                <th>Period</th>
-                                <th>Admin</th>
+                                <th>Teknisi</th>
                                 <th>Activities</th>
                                 <th>Action</th>
                             </tr>
@@ -150,7 +149,6 @@
                                     <small class="text-muted">{{ $log->motor?->location ?? '—' }}</small>
                                 </td>
                                 <td><span class="badge badge-location">{{ $log->motor?->location ?? '—' }} ({{ $log->motor?->area ?? '—' }})</span></td>
-                                <td>{{ $log->schedule?->period ?? '—' }}</td>
                                 <td>{{ $log->admin?->full_name ?? '—' }}</td>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">

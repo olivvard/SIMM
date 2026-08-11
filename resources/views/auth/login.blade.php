@@ -8,7 +8,7 @@
 <body class="container-fluid">
 
     <div class="row">
-        <div class="col-xl-7"><img class="bg-img-cover bg-center" src="{{ asset('assets/images/login.jpg') }}" alt="looginpage">
+        <div class="col-xl-7"><img class="bg-img-cover bg-center" src="{{ asset('assets/images/login.jpg') }}" alt="loginpage">
         </div>
         <div class="col-xl-5 p-0">
             <div class="login-card">
@@ -45,10 +45,31 @@
                                 placeholder="*********">
                             <div class="show-hide"><span class="show"> </span></div>
                             @error('password')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
+
+                    {{-- Captcha Field --}}
+                    <div class="form-group">
+                        <label>Security Code (Captcha)</label>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div class="rounded border overflow-hidden" style="height: 45px; background: #1e293b;">
+                                <img id="captcha-img" src="{{ route('captcha') }}" alt="Captcha" style="height: 45px; width: 160px; display: block;">
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary" style="height: 45px;" onclick="refreshCaptcha()" title="Refresh Captcha">
+                                <i class="fa fa-refresh"></i>
+                            </button>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="icon-shield"></i></span>
+                            <input class="form-control @error('captcha') is-invalid @enderror" type="text" name="captcha" required="" placeholder="Masukkan kode captcha" autocomplete="off">
+                            @error('captcha')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <button class="btn btn-primary btn-block" type="submit">Sign in</button>
                     </div>
@@ -59,6 +80,13 @@
     </div>
 
     @include('components.vendor')
+
+    <script>
+        function refreshCaptcha() {
+            const img = document.getElementById('captcha-img');
+            img.src = '{{ route("captcha") }}?' + Math.random();
+        }
+    </script>
 </body>
 
 </html>

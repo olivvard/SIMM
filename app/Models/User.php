@@ -15,6 +15,7 @@ class User extends Authenticatable
         'full_name',
         'email',
         'picture',
+        'role',
     ];
 
     protected $hidden = [
@@ -27,6 +28,16 @@ class User extends Authenticatable
         return [
             'password' => 'hashed',
         ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isTeknisi(): bool
+    {
+        return $this->role === 'teknisi';
     }
 
     // Relations

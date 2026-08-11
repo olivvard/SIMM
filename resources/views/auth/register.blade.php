@@ -8,11 +8,11 @@
 <body class="container-fluid">
 
     <div class="row">
-        <div class="col-xl-7"><img class="bg-img-cover bg-center" src="{{ asset('assets/images/login.jpg') }}" alt="looginpage">
+        <div class="col-xl-7"><img class="bg-img-cover bg-center" src="{{ asset('assets/images/login.jpg') }}" alt="loginpage">
         </div>
         <div class="col-xl-5 p-0">
             <div class="login-card">
-                <form class="theme-form login-form" method="POST" action="{{ route('register') }}" enctype="multipart/form-data" novalidate>
+                <form class="theme-form login-form" method="POST" action="{{ route('register') }}" novalidate>
                     @csrf
                     <h4>Create your account</h4>
                     <h6>Enter your personal details to create account</h6>
@@ -64,10 +64,13 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Profile Picture</label>
-                        <div class="input-group"><span class="input-group-text"><i class="icon-image"></i></span>
-                            <input class="form-control @error('picture') is-invalid @enderror" type="file" name="picture" accept="image/*">
-                            @error('picture')
+                        <label>Role</label>
+                        <div class="input-group"><span class="input-group-text"><i class="icon-id"></i></span>
+                            <select class="form-select @error('role') is-invalid @enderror" name="role" required>
+                                <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                                <option value="teknisi" {{ old('role') == 'teknisi' ? 'selected' : '' }}>Teknisi</option>
+                            </select>
+                            @error('role')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
