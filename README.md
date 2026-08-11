@@ -1,6 +1,6 @@
-﻿# SIMM — Sistem Informasi Manajemen Maintenance Motor
+# SIMM — Sistem Informasi Manajemen Maintenance Motor
 
-> Aplikasi web berbasis **Laravel 11** untuk manajemen preventive maintenance motor listrik industri, dilengkapi fitur keamanan data (*Data Protection*) berupa **Password Hashing**, **Digital Signature**, **Activity Log**, serta fitur **Backup & Restore Database**.
+> Aplikasi web berbasis **Laravel 11** untuk manajemen preventive maintenance motor listrik industri, dilengkapi fitur keamanan data (*Data Protection*) berupa **Password Hashing**, **CAPTCHA Login**, **Rate Limiting**, dan **Digital Signature** untuk deteksi tampering data.
 
 ---
 
@@ -9,7 +9,6 @@
 - [Tech Stack](#-tech-stack)
 - [Fitur Utama](#-fitur-utama)
 - [Fitur Keamanan (Data Protection)](#-fitur-keamanan-data-protection)
-- [Fitur Backup & Restore](#-fitur-backup--restore)
 - [Struktur Database](#-struktur-database)
 - [Role & Hak Akses](#-role--hak-akses)
 - [Instalasi](#-instalasi)
@@ -28,7 +27,7 @@
 |---|---|
 | Backend | PHP 8.2, Laravel 11 |
 | Database | MySQL 8 |
-| Frontend | Bootstrap 5, Feather Icons, Viho Admin Template |
+| Frontend | Bootstrap 5, Feather Icons, Font Awesome 4, Viho Admin Template |
 | WebSocket | Laravel Reverb |
 | PDF Export | barryvdh/laravel-dompdf |
 | Excel Export | maatwebsite/laravel-excel |
@@ -41,39 +40,34 @@
 
 ### Dashboard
 - Stat cards: total motor, jadwal pending, overdue, dan maintenance bulan ini
-- Tabel jadwal mendekati deadline (H-3)
+- Tabel jadwal mendekati deadline (H-3) — Admin melihat link ke Schedules, Teknisi melihat link ke Maintenance Input
+- Ringkasan sistem: total log, total user, jumlah admin & teknisi
+- Grafik tren maintenance 6 bulan terakhir (Bar Chart)
+- Distribusi status jadwal (Donut Chart)
+- Tabel 5 log maintenance terbaru
 - Real-time toast notification via Laravel Reverb WebSocket
 
-### Motors
+### Motors *(Admin only)*
 - CRUD lengkap motor industri (kode motor, lokasi, area, kategori HP)
-- Soft delete dengan kemampuan restore
+- Soft delete dengan kemampuan restore & force delete
 - Riwayat maintenance per motor
 
-### Schedules
-- CRUD jadwal maintenance
-- Filter status (pending/overdue/done)
+### Schedules *(Admin only)*
+- CRUD jadwal maintenance per motor
+- Filter status (pending / overdue / done)
 - Auto-deteksi overdue via Artisan scheduler
 
-### Maintenance Input
-- Pilih jadwal -> data motor otomatis terisi
-- Checklist 15 aktivitas maintenance
+### Maintenance Input *(Teknisi only)*
+- Pilih jadwal → data motor otomatis terisi
+- Checklist aktivitas maintenance (dari tabel `activities`)
 - Upload foto bukti inspeksi
 - Digital Signature otomatis di-generate saat log disimpan
+- Hapus log maintenance beserta foto
 
-### Reports
+### Reports *(Admin & Teknisi)*
 - Filter berdasarkan bulan dan motor
 - Export ke **PDF** (DomPDF) dan **Excel** (Maatwebsite)
-
-### Activity Log
-- Rekam jejak seluruh aktivitas admin (login, logout, CRUD, dll)
-- Deteksi dan pencatatan akses ilegal / tampering data
-- Filter berdasarkan status, modul, dan keyword
-
-### Backup & Restore
-- Backup database ke file `.sql` tanpa bergantung pada `mysqldump`
-- Backup file/aset storage ke file `.zip`
-- Download dan hapus file backup
-- Restore database dari file `.sql` yang diupload maupun dari backup yang tersimpan
+- Export PDF per-log dari halaman detail maintenance
 
 ---
 
@@ -81,7 +75,7 @@
 
 ### 1. Password Hashing
 
-Semua password admin di-hash menggunakan algoritma **Bcrypt** sebelum disimpan ke database. Tidak ada password yang pernah tersimpan dalam bentuk plaintext.
+Semua password user di-hash menggunakan algoritma **Bcrypt** sebelum disimpan ke database. Tidak ada password yang pernah tersimpan dalam bentuk plaintext.
 
 **Implementasi:**
 ```php
@@ -112,7 +106,7 @@ Setiap percobaan login dilindungi oleh **CAPTCHA SVG dinamis** yang di-generate 
 ```
 [User input CAPTCHA] -> dibandingkan dengan session('captcha_code')
          |
-GAGAL -> ActivityLog dicatat (status: warning) + CAPTCHA di-refresh
+GAGAL -> CAPTCHA di-refresh + pesan error
          |
 BERHASIL -> lanjut verifikasi username/password
 ```
@@ -125,16 +119,16 @@ Sistem membatasi percobaan login sebanyak **5 kali** per kombinasi username + IP
 
 | Kondisi | Respon Sistem |
 |---|---|
-| CAPTCHA salah | Error + log warning |
+| CAPTCHA salah | Error + CAPTCHA di-refresh |
 | Password salah (1-4x) | Error + sisa percobaan ditampilkan |
-| Password salah (5x) | Akun terkunci 5 menit + log danger |
+| Password salah (5x) | Akun terkunci 5 menit |
 | Akun terkunci, akses ulang | Tampilkan sisa waktu tunggu |
 
 ---
 
 ### 4. Digital Signature
 
-Setiap maintenance log yang disimpan akan mendapatkan **Digital Signature (HMAC-SHA256)** yang di-generate dari field-field krusial. Jika data diubah secara ilegal (via phpMyAdmin, MySQL CLI, Tinker, SQL Injection, dll.), sistem akan mendeteksi pelanggaran integritas data secara otomatis.
+Setiap maintenance log yang disimpan mendapatkan **Digital Signature (HMAC-SHA256)** yang di-generate dari field-field krusial. Jika data diubah secara ilegal (via phpMyAdmin, MySQL CLI, dll.), sistem menampilkan status verifikasi **invalid** di halaman detail log.
 
 **Field yang diproteksi per log:**
 ```
@@ -143,118 +137,55 @@ admin_id | motor_id | schedule_id | inspection_date | general_notes
 
 **Cara kerja:**
 ```
-[Admin simpan Maintenance Log]
+[Teknisi simpan Maintenance Log]
          |
-generateSignature() -> HMAC-SHA256 dari payload
+generateSignature() -> HMAC-SHA256 dari payload + APP_KEY
          |
 digital_signature + payload_snapshot (JSON) disimpan ke DB
          |
------------ Setiap 30 detik -----------
-Browser -> GET /integrity-check
+Saat view detail -> verifySignature() -> re-compute & compare
          |
-verifySignature() -> re-generate HMAC, compare dengan yang tersimpan
-         |
-MISMATCH -> getDiff() -> Before/After diff per field
-         |
-Banner merah muncul di semua halaman + dicatat ke Activity Log
+VALID   -> tampilkan badge "Terverifikasi"
+INVALID -> tampilkan badge "Signature Tidak Valid"
 ```
 
-**Before/After Diff** — saat tampering terdeteksi, sistem menampilkan:
-
-| Field | Sebelum (Asli) | Sesudah (Diubah) |
-|---|---|---|
-| Catatan Umum | Motor normal, tidak ada kerusakan | DATA DIUBAH VIA PHPMYADMIN |
-
-**Vektor illegal yang terdeteksi:**
-- phpMyAdmin / MySQL Workbench / DBeaver / HeidiSQL / TablePlus
-- MySQL CLI (`mysql -u root -p`)
-- `php artisan tinker` dengan raw `DB::table()->update()`
-- SQL Injection (jika ada celah di form)
-- SSH direct query ke database
-- Script PHP lain di server yang bypass Laravel
-- Restore backup lama yang menimpa data
-
----
-
-### 5. Activity Log
-
-Seluruh aktivitas admin dicatat otomatis ke tabel `activity_logs` dengan informasi: waktu, modul, aksi, deskripsi, status keparahan, IP address, dan user agent.
-
-| Aksi | Modul | Status |
-|---|---|---|
-| Login berhasil | Auth | Normal |
-| Login gagal — CAPTCHA salah | Auth | Warning |
-| Login gagal — password salah | Auth | Warning |
-| Login terkunci (rate limit) | Auth | Danger |
-| Register admin baru | Auth | Normal |
-| Logout | Auth | Normal |
-| Buat maintenance log | Maintenance | Normal |
-| Hapus maintenance log | Maintenance | Warning |
-| Backup database dibuat | Backup | Normal |
-| Backup dihapus | Backup | Warning |
-| Restore database | Backup | Warning |
-| Tampering terdeteksi | Integrity | Danger |
-
-Deskripsi tampering di Activity Log menyertakan detail perubahan:
-> *PELANGGARAN INTEGRITAS: Log #3 (Motor: P-002) terdeteksi telah dimodifikasi langsung di database. Perubahan: [Catatan Umum] 'Motor normal' -> 'DATA DIUBAH!'*
-
----
-
-## 💾 Fitur Backup & Restore
-
-### Backup Database (`.sql`)
-
-Backup dilakukan via **PHP PDO** — tidak membutuhkan binary `mysqldump` di server. Semua tabel dan data di-dump ke file `.sql` yang mencakup perintah `DROP TABLE IF EXISTS`, `CREATE TABLE`, dan `INSERT INTO`.
-
-```
-File backup mencakup:
-├── Semua tabel database
-├── Struktur tabel (CREATE TABLE)
-├── Data (INSERT INTO)
-└── Foreign Key Checks dinonaktifkan sementara saat restore
-```
-
-### Backup Files/Storage (`.zip`)
-
-Seluruh isi direktori `storage/app/public` (termasuk foto bukti inspeksi) dikompres ke file `.zip` menggunakan ekstensi `ZipArchive` PHP.
-
-### Restore
-
-| Metode | Keterangan |
-|---|---|
-| Upload file `.sql` | Restore dari komputer lokal (maks 100 MB) |
-| Restore dari storage | Restore langsung dari file backup yang tersimpan di server |
-
-> **Perhatian:** Restore akan menimpa seluruh data database. Setelah restore, semua Digital Signature yang ada mungkin perlu di-regenerasi menggunakan perintah `php artisan maintenance:backfill-signatures` apabila `APP_KEY` telah berubah.
+> **Catatan:** `APP_KEY` digunakan sebagai secret key HMAC. Jangan ganti key ini setelah data tersimpan — semua signature akan invalid.
 
 ---
 
 ## 🗄 Struktur Database
 
 ```
-users                        — Akun admin & teknisi
+users                        — Akun admin & teknisi (role: admin | teknisi)
 motors                       — Data motor industri (soft delete)
 schedules                    — Jadwal maintenance per motor
 activities                   — Master daftar aktivitas checklist
 maintenance_logs             — Log inspeksi (+ digital_signature + payload_snapshot)
 maintenance_activity_details — Detail checklist per log
-activity_logs                — Rekam jejak semua aktivitas & kejadian keamanan
+jobs                         — Queue jobs (untuk broadcast WebSocket)
+sessions                     — Session database
+cache                        — Cache database
 ```
 
 ---
 
 ## 👤 Role & Hak Akses
 
-| Fitur | Admin | Teknisi |
-|---|---|---|
-| Dashboard | Ya | Tidak |
-| CRUD Motor | Ya | Tidak |
-| CRUD Jadwal | Ya | Tidak |
-| Input Maintenance | Ya | Ya |
-| Laporan & Export | Ya | Tidak |
-| Activity Log | Ya | Tidak |
-| Backup & Restore | Ya | Tidak |
-| Manajemen Profil | Ya | Ya |
+| Menu / Fitur | Admin | Teknisi |
+|---|:---:|:---:|
+| Dashboard | ✅ | ✅ |
+| Motors (CRUD) | ✅ | ❌ |
+| Schedules (CRUD) | ✅ | ❌ |
+| Maintenance Input (CRUD) | ❌ | ✅ |
+| Reports & Export PDF/Excel | ✅ | ✅ |
+| Export PDF per-log (dari detail) | ❌ | ✅ |
+| Manajemen Profil | ✅ | ✅ |
+
+**Middleware Stack:**
+- Semua halaman protected oleh middleware `admin` (cek autentikasi)
+- Halaman admin-only: tambah middleware `role:admin`
+- Halaman teknisi-only: tambah middleware `role:teknisi`
+- Semua role diarahkan ke `/dashboard` setelah login
 
 ---
 
@@ -271,7 +202,7 @@ activity_logs                — Rekam jejak semua aktivitas & kejadian keamanan
 
 **1. Clone repository**
 ```bash
-git clone https://github.com/username/SIMM.git
+git clone https://github.com/olivvard/SIMM.git
 cd SIMM
 ```
 
@@ -294,7 +225,7 @@ cp .env.example .env
 ```bash
 php artisan key:generate
 ```
-> **Penting:** `APP_KEY` digunakan sebagai secret key untuk Digital Signature HMAC-SHA256. Jangan ganti key ini setelah data maintenance log tersimpan — semua signature akan invalid.
+> **Penting:** `APP_KEY` digunakan sebagai secret key untuk Digital Signature HMAC-SHA256. Jangan ganti key ini setelah data maintenance log tersimpan.
 
 **6. Buat database MySQL**
 ```sql
@@ -306,7 +237,7 @@ CREATE DATABASE motor_pm CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 php artisan migrate
 ```
 
-**8. Seed database (data awal)**
+**8. Seed database (data awal: user admin + daftar aktivitas)**
 ```bash
 php artisan db:seed
 ```
@@ -328,13 +259,6 @@ npm run dev
 
 # Production
 npm run build
-```
-
-**12. Generate Digital Signature untuk data yang sudah ada**
-
-Jalankan setelah migrasi jika sudah ada data maintenance log sebelumnya:
-```bash
-php artisan maintenance:backfill-signatures
 ```
 
 ---
@@ -422,7 +346,7 @@ php artisan schedules:check-deadlines
 | Username | `admin` |
 | Password | `admin123` |
 
-> Ganti password setelah login pertama kali.
+> Ganti password setelah login pertama kali melalui halaman Profile.
 
 ---
 
@@ -430,8 +354,8 @@ php artisan schedules:check-deadlines
 
 | Perintah | Keterangan |
 |---|---|
-| `php artisan maintenance:backfill-signatures` | Generate/regenerasi Digital Signature + Payload Snapshot untuk semua maintenance log yang ada. Wajib dijalankan setelah pertama kali menambahkan fitur Digital Signature ke data yang sudah ada. |
-| `php artisan schedules:check-deadlines` | Cek semua jadwal: tandai yang overdue, broadcast alert untuk yang mendekati deadline (3 hari). |
+| `php artisan maintenance:backfill-signatures` | Generate / regenerasi Digital Signature + Payload Snapshot untuk semua maintenance log yang sudah ada. Wajib dijalankan setelah pertama kali mengaktifkan fitur Digital Signature pada data yang sudah ada, atau setelah `APP_KEY` berubah. |
+| `php artisan schedules:check-deadlines` | Cek semua jadwal: tandai yang overdue, broadcast WebSocket alert untuk yang mendekati deadline (H-3). |
 
 ---
 
@@ -450,59 +374,62 @@ app/
 ├── Http/
 │   ├── Controllers/
 │   │   ├── AuthController.php                  <- Login (CAPTCHA, Rate Limit), Register, Logout
-│   │   ├── BackupController.php                <- Backup & Restore Database/Files
-│   │   ├── DashboardController.php
-│   │   ├── IntegrityController.php             <- Polling endpoint /integrity-check
-│   │   ├── ActivityLogController.php           <- Halaman Activity Log
+│   │   ├── DashboardController.php             <- Dashboard stats & charts
 │   │   ├── MaintenanceLogController.php        <- CRUD + Digital Signature
-│   │   ├── MotorController.php
-│   │   ├── ScheduleController.php
-│   │   ├── ReportController.php
-│   │   └── ProfileController.php
+│   │   ├── MotorController.php                 <- CRUD motors (soft delete)
+│   │   ├── ScheduleController.php              <- CRUD schedules
+│   │   ├── ReportController.php                <- Filter, export PDF & Excel
+│   │   └── ProfileController.php              <- Update foto profil
 │   └── Middleware/
-│       └── AdminAuth.php
+│       ├── AdminAuth.php                       <- Cek autentikasi (semua role)
+│       └── CheckRole.php                       <- Cek role spesifik (admin/teknisi)
 └── Models/
     ├── User.php
     ├── Motor.php
     ├── Schedule.php
     ├── Activity.php
     ├── MaintenanceLog.php                      <- generateSignature(), verifySignature(), getDiff()
-    ├── MaintenanceActivityDetail.php
-    └── ActivityLog.php                         <- Static helper record()
+    └── MaintenanceActivityDetail.php
 
 database/
-└── migrations/
-    ├── ..._create_users_table.php
-    ├── ..._create_motors_table.php
-    ├── ..._create_schedules_table.php
-    ├── ..._create_activities_table.php
-    ├── ..._create_maintenance_logs_table.php
-    ├── ..._create_maintenance_activity_details_table.php
-    ├── 2026_07_20_000001_add_digital_signature_to_maintenance_logs_table.php
-    ├── 2026_07_20_000002_create_activity_logs_table.php
-    └── 2026_07_20_000003_add_payload_snapshot_to_maintenance_logs_table.php
+├── migrations/
+│   ├── ..._create_users_table.php
+│   ├── ..._create_motors_table.php
+│   ├── ..._create_schedules_table.php
+│   ├── ..._create_activities_table.php
+│   ├── ..._create_maintenance_logs_table.php
+│   ├── ..._create_maintenance_activity_details_table.php
+│   ├── ..._create_jobs_table.php
+│   ├── ..._create_sessions_table.php
+│   ├── ..._create_cache_table.php
+│   ├── 2026_07_20_000001_add_digital_signature_to_maintenance_logs_table.php
+│   ├── 2026_07_20_000003_add_payload_snapshot_to_maintenance_logs_table.php
+│   ├── 2026_07_25_000001_add_role_to_users_table.php
+│   └── 2026_08_11_..._drop_activity_logs_table.php
+└── seeders/
+    ├── DatabaseSeeder.php
+    ├── UserSeeder.php                          <- User admin & teknisi default
+    └── ActivitySeeder.php                      <- 15 aktivitas checklist maintenance
 
 resources/views/
-├── auth/             <- Login (+ CAPTCHA), Register
-├── dashboard/        <- Dashboard utama
-├── motors/           <- CRUD motors
-├── schedules/        <- CRUD schedules
-├── maintenance/      <- Input & detail log
-├── activity-logs/    <- Halaman Activity Log (Security)
-├── backup/           <- Halaman Backup & Restore
-├── reports/          <- Filter & export
+├── auth/             <- Login (+ CAPTCHA SVG), Register
+├── dashboard/        <- Dashboard utama (role-aware)
+├── motors/           <- CRUD motors (admin only)
+├── schedules/        <- CRUD schedules (admin only)
+├── maintenance/      <- Input, list, dan detail log + Export PDF (teknisi only)
+├── reports/          <- Filter & export PDF/Excel (semua role)
 ├── layouts/
-│   └── app.blade.php <- Layout utama + Tampering Alert Banner
+│   └── app.blade.php <- Layout utama
 ├── components/
 │   ├── navbar.blade.php
-│   ├── sidebar.blade.php
+│   ├── sidebar.blade.php  <- Role-aware menu (feather icons)
 │   ├── head-css.blade.php
-│   ├── vendor.blade.php  <- JS + Mobile Sidebar Fix
+│   ├── vendor.blade.php   <- JS vendors + Feather icon re-render fix + Mobile sidebar fix
 │   └── footer.blade.php
 └── user/             <- Profile
 
 routes/
-├── web.php           <- Semua route (protected middleware admin)
+├── web.php           <- RBAC routes (admin: motors+schedules, teknisi: maintenance, semua: dashboard+reports)
 ├── channels.php      <- Reverb channel authorization
 └── console.php       <- Scheduled commands
 ```
@@ -516,5 +443,5 @@ MIT License — bebas digunakan dan dimodifikasi.
 ---
 
 <div align="center">
-  <sub>Built with Laravel 11 · Dikembangkan untuk keperluan Ujian Akhir Semester (UAS) — Keamanan Data dan Informasi</sub>
+  <sub>Built with Laravel 11 · Dikembangkan untuk keperluan Kerja Praktek (KP) — PT WEA Indonesia</sub>
 </div>
