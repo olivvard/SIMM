@@ -8,16 +8,13 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use App\Models\User;
-use App\Models\ActivityLog;
 
 class AuthController extends Controller
 {
     public function showLogin()
     {
         if (Auth::check()) {
-            return Auth::user()->isTeknisi()
-                ? redirect()->route('maintenance.index')
-                : redirect()->route('dashboard');
+            return redirect()->route('dashboard');
         }
 
         return view('auth.login');
@@ -90,16 +87,7 @@ class AuthController extends Controller
 
         // Validate Captcha
         if (strtolower($credentials['captcha']) !== session('captcha_code')) {
-            // Regenerate captcha session
             session()->forget('captcha_code');
-
-            ActivityLog::record(
-                module:      'Auth',
-                action:      'captcha_failed',
-                description: 'Percobaan login gagal karena kode Captcha salah untuk username: "' . $credentials['username'] . '".',
-                status:      'warning',
-                adminId:     null
-            );
 
             return back()->withErrors([
                 'captcha' => 'Kode Captcha yang Anda masukkan salah. Silakan coba lagi.',
@@ -113,14 +101,6 @@ class AuthController extends Controller
             $seconds = RateLimiter::availableIn($throttleKey);
             $minutes = ceil($seconds / 60);
 
-            ActivityLog::record(
-                module:      'Auth',
-                action:      'login_throttled',
-                description: 'Percobaan login terkunci untuk username: "' . $credentials['username'] . '". Harus menunggu ' . $minutes . ' menit.',
-                status:      'danger',
-                adminId:     null
-            );
-
             return back()->withErrors([
                 'username' => 'Terlalu banyak percobaan login gagal. Akun Anda dikunci sementara. Silakan coba lagi dalam ' . $minutes . ' menit.',
             ])->onlyInput('username');
@@ -133,32 +113,13 @@ class AuthController extends Controller
 
             $user = Auth::user();
 
-            // ── [ACTIVITY LOG] Login berhasil ────────────────────────────────
-            ActivityLog::record(
-                module:      'Auth',
-                action:      'login',
-                description: ucfirst($user->role) . ' "' . $user->full_name . '" berhasil login ke sistem.',
-                status:      'normal'
-            );
-
-            $targetRoute = $user->isTeknisi() ? 'maintenance.index' : 'dashboard';
-
-            return redirect()->intended(route($targetRoute))
+            return redirect()->intended(route('dashboard'))
                 ->with('success', 'Selamat datang kembali, ' . $user->full_name . '!');
         }
 
         // Increment rate limiter decay to 5 minutes (300s)
         RateLimiter::hit($throttleKey, 300);
         $remainingAttempts = RateLimiter::remaining($throttleKey, 5);
-
-        // ── [ACTIVITY LOG] Login gagal ──────────────────────────────────────
-        ActivityLog::record(
-            module:      'Auth',
-            action:      'login_failed',
-            description: 'Percobaan login gagal untuk username: "' . $credentials['username'] . '". Sisa percobaan: ' . $remainingAttempts,
-            status:      'warning',
-            adminId:     null
-        );
 
         $errorMessage = $remainingAttempts > 0
             ? 'Username atau password salah. Sisa percobaan: ' . $remainingAttempts . ' kali.'
@@ -172,9 +133,7 @@ class AuthController extends Controller
     public function showRegister()
     {
         if (Auth::check()) {
-            return Auth::user()->isTeknisi()
-                ? redirect()->route('maintenance.index')
-                : redirect()->route('dashboard');
+            return redirect()->route('dashboard');
         }
 
         return view('auth.register');
@@ -201,32 +160,12 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        // ── [ACTIVITY LOG] Registrasi user baru ────────────────────────────
-        ActivityLog::record(
-            module:      'Auth',
-            action:      'register',
-            description: 'Akun ' . $user->role . ' baru "' . $user->full_name . '" (username: ' . $user->username . ') berhasil didaftarkan.',
-            status:      'normal'
-        );
-
-        $targetRoute = $user->isTeknisi() ? 'maintenance.index' : 'dashboard';
-
-        return redirect()->route($targetRoute)
+        return redirect()->route('dashboard')
             ->with('success', 'Registrasi berhasil. Selamat datang di WEA PM Motor!');
     }
 
     public function logout(Request $request)
     {
-        // ── [ACTIVITY LOG] Logout ────────────────────────────────────────────
-        if (Auth::check()) {
-            ActivityLog::record(
-                module:      'Auth',
-                action:      'logout',
-                description: ucfirst(Auth::user()->role) . ' "' . Auth::user()->full_name . '" logout dari sistem.',
-                status:      'normal'
-            );
-        }
-
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Motor;
 use App\Models\Schedule;
 use App\Models\MaintenanceLog;
-use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -78,12 +77,6 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // ── Recent Activity Logs ─────────────────────────────────────────────
-        $recentActivities = ActivityLog::with('admin')
-            ->orderBy('created_at', 'desc')
-            ->take(6)
-            ->get();
-
         // ── Maintenance rate this month vs last month ─────────────────────────
         $lastMonth = MaintenanceLog::whereMonth('inspection_date', Carbon::now()->subMonth()->month)
             ->whereYear('inspection_date', Carbon::now()->subMonth()->year)
@@ -109,7 +102,6 @@ class DashboardController extends Controller
             'categoryData',
             'scheduleStatusData',
             'recentLogs',
-            'recentActivities',
             'maintenanceTrend',
             'lastMonth'
         ));

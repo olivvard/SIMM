@@ -6,7 +6,6 @@ use App\Models\MaintenanceLog;
 use App\Models\Schedule;
 use App\Models\Motor;
 use App\Models\Activity;
-use App\Models\ActivityLog;
 use App\Events\ScheduleAlert;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -60,8 +59,6 @@ class MaintenanceLogController extends Controller
             $photoUrl = $path;
         }
 
-        // ── [DATA PROTECTION] PASSWORD HASHING ──────────────────────────────
-        // Admin sudah terautentikasi — passwordnya di-hash via Bcrypt (AuthController).
         $adminId = Auth::id();
 
         // Buat maintenance log
@@ -97,16 +94,6 @@ class MaintenanceLogController extends Controller
             type:         'done'
         ))->toOthers();
 
-        // ── [ACTIVITY LOG] Maintenance log dibuat ───────────────────────────
-        ActivityLog::record(
-            module:      'Maintenance',
-            action:      'create',
-            description: 'Admin "' . Auth::user()->full_name . '" membuat maintenance log #' . $log->id
-                         . ' untuk motor "' . ($schedule->motor->motor_code ?? 'Unknown') . '"'
-                         . ' pada tanggal ' . $validated['inspection_date'] . '.',
-            status:      'normal'
-        );
-
         return redirect()->route('maintenance.index')
             ->with('success', 'Maintenance log recorded successfully.');
     }
@@ -123,24 +110,12 @@ class MaintenanceLogController extends Controller
 
     public function destroy(MaintenanceLog $maintenanceLog)
     {
-        $logId     = $maintenanceLog->id;
-        $motorCode = $maintenanceLog->motor?->motor_code ?? 'Unknown';
-
         // Delete photo if exists
         if ($maintenanceLog->photo_url) {
             Storage::disk('public')->delete($maintenanceLog->photo_url);
         }
 
         $maintenanceLog->delete();
-
-        // ── [ACTIVITY LOG] Maintenance log dihapus ──────────────────────────
-        ActivityLog::record(
-            module:      'Maintenance',
-            action:      'delete',
-            description: 'Admin "' . Auth::user()->full_name . '" menghapus maintenance log #' . $logId
-                         . ' (motor: "' . $motorCode . '").',
-            status:      'warning'
-        );
 
         return redirect()->route('maintenance.index')
             ->with('success', 'Maintenance log deleted.');

@@ -27,6 +27,7 @@
                         <div><h6>Main Menu</h6></div>
                     </li>
 
+                    {{-- Dashboard: semua role --}}
                     <li class="dropdown">
                         <a href="{{ route('dashboard') }}"
                            class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
@@ -35,14 +36,17 @@
                         </a>
                     </li>
 
+                    {{-- Admin Only: Motors --}}
+                    @if(Auth::user()->isAdmin())
                     <li class="dropdown">
                         <a href="{{ route('motors.index') }}"
                            class="nav-link {{ request()->routeIs('motors.*') ? 'active' : '' }}">
-                            <i data-feather="aperture"></i>
+                            <i data-feather="zap"></i>
                             <span>Motors</span>
                         </a>
                     </li>
 
+                    {{-- Admin Only: Schedules --}}
                     <li class="dropdown">
                         <a href="{{ route('schedules.index') }}"
                            class="nav-link {{ request()->routeIs('schedules.*') ? 'active' : '' }}">
@@ -50,15 +54,20 @@
                             <span>Schedules</span>
                         </a>
                     </li>
+                    @endif
 
+                    {{-- Teknisi Only: Maintenance Input --}}
+                    @if(Auth::user()->isTeknisi())
                     <li class="dropdown">
                         <a href="{{ route('maintenance.index') }}"
                            class="nav-link {{ request()->routeIs('maintenance.*') ? 'active' : '' }}">
-                            <i data-feather="activity"></i>
+                            <i data-feather="settings"></i>
                             <span>Maintenance Input</span>
                         </a>
                     </li>
+                    @endif
 
+                    {{-- Reports: semua role --}}
                     <li class="dropdown">
                         <a href="{{ route('reports.index') }}"
                            class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
@@ -67,28 +76,6 @@
                         </a>
                     </li>
 
-                    {{-- ── Security ── --}}
-                    <li class="sidebar-main-title">
-                        <div><h6>Security</h6></div>
-                    </li>
-
-                    <li class="dropdown">
-                        <a href="{{ route('activity-logs.index') }}"
-                           class="nav-link {{ request()->routeIs('activity-logs.*') ? 'active' : '' }}">
-                            <i data-feather="shield"></i>
-                            <span>Activity Log</span>
-                        </a>
-                    </li>
-
-                    @if(Auth::user()->isAdmin())
-                    <li class="dropdown">
-                        <a href="{{ route('backup.index') }}"
-                           class="nav-link {{ request()->routeIs('backup.*') ? 'active' : '' }}">
-                            <i data-feather="database"></i>
-                            <span>Backup & Recovery</span>
-                        </a>
-                    </li>
-                    @endif
                 </ul>
             </div>
             <div class="right-arrow" id="right-arrow"><i data-feather="arrow-right"></i></div>

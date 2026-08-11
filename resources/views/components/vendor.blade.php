@@ -42,6 +42,20 @@
     <!-- login js-->
     <!-- Plugin used-->
 
+    {{-- ── Feather Icons Re-render Fix ────────────────────────────────────────
+         feather-icon.js dipanggil saat halaman pertama load (berisi feather.replace()).
+         Namun karena script ini dijalankan sebelum @stack('scripts') selesai,
+         ada kemungkinan DOM sidebar belum siap. Panggil ulang feather.replace()
+         setelah DOM siap untuk memastikan SEMUA ikon feather ter-render.
+    ──────────────────────────────────────────────────────────────────────── --}}
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    });
+    </script>
+
     {{-- ── Mobile Sidebar Burger Fix ──────────────────────────────────────────
          Template Viho hanya men-handle .toggle-sidebar (desktop) dan
          .mobile-toggle (hamburger kanan atas untuk nav-menus, bukan sidebar).

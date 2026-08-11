@@ -13,7 +13,9 @@
     <div>
         <strong>{{ $overdueCount }} Jadwal Maintenance Terlambat!</strong>
         Terdapat <strong>{{ $overdueCount }}</strong> jadwal yang sudah melewati batas waktu dan belum diselesaikan.
+        @if(Auth::user()->isAdmin())
         <a href="{{ route('schedules.index', ['status' => 'overdue']) }}" class="alert-link ms-2">Lihat semua &rarr;</a>
+        @endif
     </div>
     <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
 </div>
@@ -41,9 +43,13 @@
                     <p class="mb-0" style="color: rgba(255,255,255,0.8); font-size: 13px;">Total Motor Terdaftar</p>
                 </div>
                 <div class="mt-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.2);">
+                    @if(Auth::user()->isAdmin())
                     <a href="{{ route('motors.index') }}" style="color: rgba(255,255,255,0.9); font-size: 12px; text-decoration: none;">
                         Lihat semua motor <i class="fa fa-arrow-right ms-1"></i>
                     </a>
+                    @else
+                    <span style="color: rgba(255,255,255,0.7); font-size: 12px;">Data motor terdaftar</span>
+                    @endif
                 </div>
             </div>
         </div>
@@ -66,9 +72,13 @@
                     <p class="mb-0" style="color: rgba(255,255,255,0.8); font-size: 13px;">Jadwal Pending</p>
                 </div>
                 <div class="mt-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.2);">
+                    @if(Auth::user()->isAdmin())
                     <a href="{{ route('schedules.index', ['status' => 'pending']) }}" style="color: rgba(255,255,255,0.9); font-size: 12px; text-decoration: none;">
                         Lihat jadwal pending <i class="fa fa-arrow-right ms-1"></i>
                     </a>
+                    @else
+                    <span style="color: rgba(255,255,255,0.7); font-size: 12px;">Jadwal menunggu eksekusi</span>
+                    @endif
                 </div>
             </div>
         </div>
@@ -91,9 +101,13 @@
                     <p class="mb-0" style="color: rgba(255,255,255,0.8); font-size: 13px;">Jadwal Overdue</p>
                 </div>
                 <div class="mt-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.2);">
+                    @if(Auth::user()->isAdmin())
                     <a href="{{ route('schedules.index', ['status' => 'overdue']) }}" style="color: rgba(255,255,255,0.9); font-size: 12px; text-decoration: none;">
                         Lihat jadwal overdue <i class="fa fa-arrow-right ms-1"></i>
                     </a>
+                    @else
+                    <span style="color: rgba(255,255,255,0.7); font-size: 12px;">Jadwal belum diselesaikan</span>
+                    @endif
                 </div>
             </div>
         </div>
@@ -201,11 +215,11 @@
 </div>
 
 {{-- ═══════════════════════════════════════════════════════════════ --}}
-{{-- UPCOMING SCHEDULES + RECENT ACTIVITY                            --}}
+{{-- UPCOMING SCHEDULES (ADMIN) + MAINTENANCE INPUT (TEKNISI)        --}}
 {{-- ═══════════════════════════════════════════════════════════════ --}}
 <div class="row mt-4 g-3">
 
-    {{-- Upcoming H-3 Schedules --}}
+    {{-- Upcoming H-3 Schedules (Admin) / Jadwal Perlu Dikerjakan (Teknisi) --}}
     <div class="col-xl-8">
         <div class="card card-panel" style="border-radius: 16px; border: none;">
             <div class="card-header d-flex align-items-center justify-content-between" style="border-bottom: 1px solid #f1f5f9; padding: 18px 24px;">
@@ -216,9 +230,15 @@
                     </h6>
                     <p class="text-muted mb-0" style="font-size: 12px; margin-top: 2px;">Jadwal maintenance dalam 3 hari ke depan</p>
                 </div>
+                @if(Auth::user()->isAdmin())
                 <a href="{{ route('schedules.index') }}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px; font-size: 12px;">
                     Lihat Semua
                 </a>
+                @else
+                <a href="{{ route('maintenance.index') }}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px; font-size: 12px;">
+                    Lihat Semua
+                </a>
+                @endif
             </div>
             <div class="card-body p-0">
                 @if($upcomingSchedules->isEmpty())
@@ -234,7 +254,6 @@
                                 <tr>
                                     <th style="font-size: 12px; padding: 12px 16px;">Motor</th>
                                     <th style="font-size: 12px;">Lokasi</th>
-                                    <th style="font-size: 12px;">Periode</th>
                                     <th style="font-size: 12px;">Tanggal</th>
                                     <th style="font-size: 12px;">Sisa</th>
                                     <th style="font-size: 12px;" class="text-center">Aksi</th>
@@ -258,7 +277,6 @@
                                                 <span class="text-muted">N/A</span>
                                             @endif
                                         </td>
-                                        <td><span style="font-size: 12px;">{{ $schedule->period }}</span></td>
                                         <td><span style="font-size: 12px; font-weight: 600;">{{ $schedule->schedule_date->format('d M Y') }}</span></td>
                                         <td>
                                             @if($daysLeft === 0)
@@ -292,47 +310,39 @@
         </div>
     </div>
 
-    {{-- Recent Activity Log --}}
+    {{-- Summary Info --}}
     <div class="col-xl-4">
-        <div class="card card-panel h-100" style="border-radius: 16px; border: none;">
-            <div class="card-header d-flex align-items-center justify-content-between" style="border-bottom: 1px solid #f1f5f9; padding: 18px 24px;">
-                <h6 class="card-panel__title mb-0" style="font-size: 14px; font-weight: 700;">
-                    <i class="fa fa-list-alt me-2 text-info"></i>
-                    Aktivitas Terbaru
-                </h6>
-                <a href="{{ route('activity-logs.index') }}" class="btn btn-sm btn-outline-secondary" style="border-radius: 8px; font-size: 12px;">
-                    Semua Log
-                </a>
-            </div>
-            <div class="card-body" style="padding: 16px 20px;">
-                @forelse($recentActivities as $activity)
-                    @php
-                        $iconMap = [
-                            'normal'  => ['icon' => 'fa-check-circle', 'color' => '#10b981', 'bg' => '#ecfdf5'],
-                            'warning' => ['icon' => 'fa-exclamation-triangle', 'color' => '#f59e0b', 'bg' => '#fffbeb'],
-                            'danger'  => ['icon' => 'fa-times-circle', 'color' => '#ef4444', 'bg' => '#fef2f2'],
-                        ];
-                        $style = $iconMap[$activity->status] ?? $iconMap['normal'];
-                    @endphp
-                    <div class="d-flex align-items-start gap-3 mb-3">
-                        <div style="width: 34px; height: 34px; border-radius: 10px; background: {{ $style['bg'] }}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                            <i class="fa {{ $style['icon'] }}" style="font-size: 15px; color: {{ $style['color'] }};"></i>
-                        </div>
-                        <div style="flex: 1; min-width: 0;">
-                            <p class="mb-0 fw-semibold" style="font-size: 12px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                {{ $activity->description }}
-                            </p>
-                            <small class="text-muted" style="font-size: 11px;">
-                                {{ $activity->module }} &bull; {{ $activity->created_at->diffForHumans() }}
-                            </small>
-                        </div>
+        <div class="card card-panel h-100" style="border-radius: 16px; border: none; background: #0f172a;">
+            <div class="card-body" style="padding: 24px;">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99,102,241,0.2); display:flex; align-items:center; justify-content:center;">
+                        <i class="fa fa-info-circle" style="font-size: 1.2rem; color: #818cf8;"></i>
                     </div>
-                @empty
-                    <div class="text-center text-muted py-4">
-                        <i class="fa fa-inbox" style="font-size: 2rem; opacity: 0.2;"></i>
-                        <p class="mb-0 mt-2" style="font-size: 12px;">Belum ada aktivitas tercatat.</p>
+                    <div>
+                        <h6 class="mb-0 fw-bold" style="color: #f8fafc; font-size: 13px;">Ringkasan Sistem</h6>
+                        <small style="color: #64748b;">Overview WEA PM Motor</small>
                     </div>
-                @endforelse
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3" style="border-bottom: 1px solid #1e293b;">
+                    <span style="color: #94a3b8; font-size: 13px;">Total Motor</span>
+                    <span style="color: #f8fafc; font-weight: 700; font-size: 15px;">{{ $totalMotors }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3" style="border-bottom: 1px solid #1e293b;">
+                    <span style="color: #94a3b8; font-size: 13px;">Total Log</span>
+                    <span style="color: #f8fafc; font-weight: 700; font-size: 15px;">{{ $totalLogs }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3" style="border-bottom: 1px solid #1e293b;">
+                    <span style="color: #94a3b8; font-size: 13px;">Total User</span>
+                    <span style="color: #f8fafc; font-weight: 700; font-size: 15px;">{{ $totalUsers }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3" style="border-bottom: 1px solid #1e293b;">
+                    <span style="color: #94a3b8; font-size: 13px;">Teknisi</span>
+                    <span style="color: #818cf8; font-weight: 700; font-size: 15px;">{{ $teknisiCount }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span style="color: #94a3b8; font-size: 13px;">Admin</span>
+                    <span style="color: #34d399; font-weight: 700; font-size: 15px;">{{ $totalUsers - $teknisiCount }}</span>
+                </div>
             </div>
         </div>
     </div>
@@ -342,7 +352,7 @@
 {{-- ═══════════════════════════════════════════════════════════════ --}}
 {{-- RECENT MAINTENANCE LOGS TABLE                                   --}}
 {{-- ═══════════════════════════════════════════════════════════════ --}}
-<div class="row mt-4 g-3">
+<div class="row mt-4 g-3 mb-4">
     <div class="col-12">
         <div class="card card-panel" style="border-radius: 16px; border: none;">
             <div class="card-header d-flex align-items-center justify-content-between" style="border-bottom: 1px solid #f1f5f9; padding: 18px 24px;">
@@ -353,9 +363,15 @@
                     </h6>
                     <p class="text-muted mb-0" style="font-size: 12px; margin-top: 2px;">5 entri maintenance terakhir yang diinput</p>
                 </div>
+                @if(Auth::user()->isTeknisi())
                 <a href="{{ route('maintenance.index') }}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px; font-size: 12px;">
                     Lihat Semua
                 </a>
+                @else
+                <a href="{{ route('reports.index') }}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px; font-size: 12px;">
+                    Lihat Reports
+                </a>
+                @endif
             </div>
             <div class="card-body p-0">
                 @if($recentLogs->isEmpty())
@@ -373,18 +389,11 @@
                                     <th style="font-size: 12px;">Motor</th>
                                     <th style="font-size: 12px;">Lokasi</th>
                                     <th style="font-size: 12px;">Teknisi</th>
-                                    <th style="font-size: 12px;">Progress</th>
                                     <th style="font-size: 12px;" class="text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($recentLogs as $i => $log)
-                                    @php
-                                        $done  = $log->activityDetails->where('is_done', true)->count();
-                                        $total = $log->activityDetails->count();
-                                        $pct   = $total > 0 ? round($done / $total * 100) : 0;
-                                        $pctColor = $pct >= 80 ? '#10b981' : ($pct >= 50 ? '#f59e0b' : '#ef4444');
-                                    @endphp
                                     <tr>
                                         <td style="padding: 12px 16px; font-size: 12px; color: #94a3b8; font-weight: 600;">#{{ $log->id }}</td>
                                         <td>
@@ -412,23 +421,18 @@
                                                 <span style="font-size: 12px;">{{ $log->admin?->full_name ?? '—' }}</span>
                                             </div>
                                         </td>
-                                        <td>
-                                            @if($total > 0)
-                                            <div class="d-flex align-items-center gap-2" style="min-width: 100px;">
-                                                <div class="flex-fill" style="height: 6px; background: #f1f5f9; border-radius: 10px; overflow: hidden;">
-                                                    <div style="height: 100%; width: {{ $pct }}%; background: {{ $pctColor }}; border-radius: 10px;"></div>
-                                                </div>
-                                                <span style="font-size: 11px; color: #64748b; flex-shrink: 0;">{{ $done }}/{{ $total }}</span>
-                                            </div>
-                                            @else
-                                                <span class="text-muted" style="font-size: 11px;">—</span>
-                                            @endif
-                                        </td>
                                         <td class="text-center">
+                                            @if(Auth::user()->isTeknisi())
                                             <a href="{{ route('maintenance.show', $log) }}"
                                                class="btn btn-sm btn-outline-info" style="border-radius: 8px; font-size: 12px; padding: 4px 12px;">
                                                 <i class="fa fa-eye"></i>
                                             </a>
+                                            @else
+                                            <a href="{{ route('reports.index') }}"
+                                               class="btn btn-sm btn-outline-secondary" style="border-radius: 8px; font-size: 12px; padding: 4px 12px;">
+                                                <i class="fa fa-bar-chart"></i>
+                                            </a>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach
@@ -436,94 +440,6 @@
                         </table>
                     </div>
                 @endif
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- ═══════════════════════════════════════════════════════════════ --}}
-{{-- SUMMARY INFO CARDS                                              --}}
-{{-- ═══════════════════════════════════════════════════════════════ --}}
-<div class="row mt-4 g-3 mb-4">
-    <div class="col-xl-4">
-        <div class="card" style="border-radius: 16px; border: none; background: #0f172a;">
-            <div class="card-body" style="padding: 24px;">
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(139,92,246,0.2); display:flex; align-items:center; justify-content:center;">
-                        <i class="fa fa-users" style="font-size: 1.2rem; color: #a78bfa;"></i>
-                    </div>
-                    <div>
-                        <h6 class="mb-0 fw-bold" style="color: #f8fafc; font-size: 13px;">Tim Pengguna Aktif</h6>
-                        <small style="color: #64748b;">Registered accounts</small>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center justify-content-between">
-                    <div class="text-center">
-                        <div style="font-size: 2rem; font-weight: 800; color: #f8fafc;">{{ $totalUsers }}</div>
-                        <div style="font-size: 11px; color: #64748b;">Total User</div>
-                    </div>
-                    <div style="width: 1px; height: 40px; background: #1e293b;"></div>
-                    <div class="text-center">
-                        <div style="font-size: 2rem; font-weight: 800; color: #818cf8;">{{ $teknisiCount }}</div>
-                        <div style="font-size: 11px; color: #64748b;">Teknisi</div>
-                    </div>
-                    <div style="width: 1px; height: 40px; background: #1e293b;"></div>
-                    <div class="text-center">
-                        <div style="font-size: 2rem; font-weight: 800; color: #34d399;">{{ $totalUsers - $teknisiCount }}</div>
-                        <div style="font-size: 11px; color: #64748b;">Admin</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-4">
-        <div class="card" style="border-radius: 16px; border: none; background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);">
-            <div class="card-body" style="padding: 24px;">
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center;">
-                        <i class="fa fa-database" style="font-size: 1.2rem; color: #fff;"></i>
-                    </div>
-                    <div>
-                        <h6 class="mb-0 fw-bold" style="color: #fff; font-size: 13px;">Rekap Maintenance</h6>
-                        <small style="color: rgba(255,255,255,0.7);">Statistik keseluruhan</small>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center justify-content-between">
-                    <div class="text-center">
-                        <div style="font-size: 2rem; font-weight: 800; color: #fff;">{{ $totalLogs }}</div>
-                        <div style="font-size: 11px; color: rgba(255,255,255,0.7);">Total Log</div>
-                    </div>
-                    <div style="width: 1px; height: 40px; background: rgba(255,255,255,0.2);"></div>
-                    <div class="text-center">
-                        <div style="font-size: 2rem; font-weight: 800; color: #fff;">{{ $thisMonth }}</div>
-                        <div style="font-size: 11px; color: rgba(255,255,255,0.7);">Bulan Ini</div>
-                    </div>
-                    <div style="width: 1px; height: 40px; background: rgba(255,255,255,0.2);"></div>
-                    <div class="text-center">
-                        <div style="font-size: 2rem; font-weight: 800; color: #fff;">{{ $doneCount }}</div>
-                        <div style="font-size: 11px; color: rgba(255,255,255,0.7);">Selesai</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-4">
-        <div class="card" style="border-radius: 16px; border: none; border: 2px dashed #e2e8f0;">
-            <div class="card-body d-flex align-items-center gap-4" style="padding: 24px;">
-                <div style="width: 56px; height: 56px; border-radius: 16px; background: #fef9c3; display:flex; align-items:center; justify-content:center; flex-shrink: 0;">
-                    <i class="fa fa-shield" style="font-size: 1.6rem; color: #ca8a04;"></i>
-                </div>
-                <div>
-                    <h6 class="fw-bold mb-1" style="font-size: 13px;">Integrity Check Aktif</h6>
-                    <p class="text-muted mb-0" style="font-size: 12px; line-height: 1.5;">
-                        Digital signature HMAC-SHA256 aktif memantau setiap log dari manipulasi data.
-                    </p>
-                    <a href="{{ route('integrity.check') }}" class="text-warning fw-semibold" style="font-size: 12px; text-decoration: none;">
-                        Cek Integritas Sekarang <i class="fa fa-arrow-right ms-1"></i>
-                    </a>
-                </div>
             </div>
         </div>
     </div>
